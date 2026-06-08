@@ -7,5 +7,6 @@ import java.util.Optional;
 
 public interface CityRepository {
     Optional<City> findByCoordinate(Coordinate coordinate);
-    void save(City city);
+    Optional<City> findByPlaceId(String placeId);
+    City save(City city);
 }

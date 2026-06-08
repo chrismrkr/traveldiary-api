@@ -12,27 +12,17 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class CityService implements CityFinder, CityRegistration {
+public class CityService implements CityFinder {
+    private final CityRegistration cityRegisterService;
     private final CityRepository repository;
 
     @Override
-    public City find(String name, Coordinate coordinate) {
+    public City find(String name, String placeId, Coordinate coordinate) {
         return repository.findByCoordinate(coordinate)
                 .orElseThrow(() -> {
-                    // TODO. City Registration Init(Async)
-                    doRegister(name, coordinate);
+                    cityRegisterService.register(name, placeId, coordinate);
                     throw new CityNotReadyException(coordinate);
                 });
     }
 
-    @Override
-    public void register(String name, Coordinate coordinate) {
-
-    }
-
-    private void doRegister(String name, Coordinate coordinate) {
-        City newCity = City.builder()
-                .name(name).coordinate(coordinate).build();
-        repository.save(newCity);
-    }
 }

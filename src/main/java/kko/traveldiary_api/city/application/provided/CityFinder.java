@@ -6,5 +6,5 @@ import kko.traveldiary_api.shared.Coordinate;
 import java.util.Optional;
 
 public interface CityFinder {
-    City find(String name, Coordinate coordinate);
+    City find(String name, String placeId, Coordinate coordinate);
 }
