@@ -27,7 +27,7 @@ public class JourneyService implements JourneyFinder, JourneyModifier {
     @Override
     public Journey find(Long journeyId) {
         return repository.findById(journeyId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid JourneyId: NotFound"));
+                .orElseThrow(() -> new IllegalArgumentException("Invalid JourneyId: Not Found"));
     }
 
     @Override
