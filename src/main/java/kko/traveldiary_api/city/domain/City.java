@@ -26,6 +26,15 @@ public final class City {
         this.status = status;
     }
 
+    public void setDetails(String description, String imageId) {
+        this.description = description;
+        this.cityImageId = imageId;
+    }
+
+    public void setReady() {
+        this.status = Status.READY;
+    }
+
 
     public enum Status { PENDING, READY, FAILED }
 }

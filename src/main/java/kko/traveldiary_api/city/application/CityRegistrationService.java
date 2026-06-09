@@ -1,6 +1,8 @@
 package kko.traveldiary_api.city.application;
 
+import kko.traveldiary_api.city.application.provided.CityDetailRegistration;
 import kko.traveldiary_api.city.application.provided.CityRegistration;
+import kko.traveldiary_api.city.application.required.CityDetailGenerator;
 import kko.traveldiary_api.city.application.required.CityRegistrationEventPublisher;
 import kko.traveldiary_api.city.application.required.CityRepository;
 import kko.traveldiary_api.city.domain.City;
@@ -13,9 +15,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class CityRegistrationService implements CityRegistration {
+public class CityRegistrationService implements CityRegistration, CityDetailRegistration {
     private final CityRepository repository;
     private final CityRegistrationEventPublisher eventPublisher;
+    private final CityDetailGenerator cityDetailGenerator;
 
     @Override
     @Transactional
@@ -27,5 +30,13 @@ public class CityRegistrationService implements CityRegistration {
             repository.save(newCity);
             eventPublisher.publish(new CityGenerateRequest(name, placeId, coordinate));
         } catch (DataIntegrityViolationException ignored) { }
+    }
+
+    @Override
+    @Transactional
+    public void registerDetail(CityGenerateRequest request) {
+        City city = repository.findByPlaceId(request.placeId()).orElseThrow(() -> new IllegalStateException(""));
+        city = cityDetailGenerator.generateDetail(city);
+        repository.save(city);
     }
 }
