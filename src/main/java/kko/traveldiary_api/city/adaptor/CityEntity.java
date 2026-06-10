@@ -79,6 +79,7 @@ public class CityEntity {
 
     public City toDomain() {
         return City.builder()
+                .id(id)
                 .name(name)
                 .placeId(placeId)
                 .description(description)

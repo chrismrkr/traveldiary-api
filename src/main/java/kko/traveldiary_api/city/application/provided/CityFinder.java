@@ -7,4 +7,5 @@ import java.util.Optional;
 
 public interface CityFinder {
     City findOrRegister(String name, String placeId, Coordinate coordinate);
+    City findByCoordinate(Coordinate coordinate);
 }

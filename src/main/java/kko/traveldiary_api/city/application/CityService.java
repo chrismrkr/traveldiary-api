@@ -9,6 +9,8 @@ import kko.traveldiary_api.shared.Coordinate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +25,12 @@ public class CityService implements CityFinder {
                     cityRegistration.register(name, placeId, coordinate);
                     return new CityNotReadyException(coordinate);
                 });
+    }
+
+    @Override
+    public City findByCoordinate(Coordinate coordinate) {
+        return repository.findByCoordinate(coordinate)
+                .orElseThrow(() -> new CityNotReadyException(coordinate));
     }
 
 }

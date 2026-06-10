@@ -11,6 +11,7 @@ import kko.traveldiary_api.shared.Coordinate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -30,6 +31,11 @@ public class CityRegistrationService implements CityRegistration, CityDetailRegi
             repository.save(newCity);
             eventPublisher.publish(new CityGenerateRequest(name, placeId, coordinate));
         } catch (DataIntegrityViolationException ignored) { }
+    }
+
+    @Override
+    public void register(City city) {
+        repository.save(city);
     }
 
     @Override
