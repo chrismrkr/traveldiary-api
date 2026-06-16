@@ -37,11 +37,6 @@ public class CityRegistrationService implements CityRegistration, CityDetailRegi
     }
 
     @Override
-    public void register(City city) {
-        repository.save(city);
-    }
-
-    @Override
     @Transactional
     public void registerDetail(CityGenerateRequest request) {
         City city = repository.findByPlaceId(request.placeId()).orElseThrow(() -> new IllegalStateException(""));
@@ -51,6 +46,11 @@ public class CityRegistrationService implements CityRegistration, CityDetailRegi
 
         city.setDetails(cityImageDetail.description(), cityImageDetail.id());
         city.setReady();
+        repository.save(city);
+    }
+
+    @Override
+    public void register(City city) {
         repository.save(city);
     }
 }
