@@ -1,9 +1,10 @@
 package kko.traveldiary_api.city.adaptor.ai;
 
-import kko.traveldiary_api.city.application.provided.CityImageStoragePort;
+import kko.traveldiary_api.city.application.required.CityImageStoragePort;
 import kko.traveldiary_api.city.application.provided.CityRegistration;
 import kko.traveldiary_api.city.application.required.CityDetailGenerator;
 import kko.traveldiary_api.city.domain.City;
+import kko.traveldiary_api.city.domain.CityImageDetail;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.image.ImageModel;
 import org.springframework.ai.image.ImagePrompt;
@@ -20,19 +21,16 @@ import java.util.UUID;
 public class CityDetailAIGenerator implements CityDetailGenerator {
     private final ChatClient claudeChatClient;
     private final ImageModel imageModel;
-    private final CityRegistration cityRegistration;
-    private final CityImageStoragePort cityImageStoragePort;
+
 
     @Autowired
-    public CityDetailAIGenerator(@Qualifier("claudeChatClient") ChatClient claudeChatClient, ImageModel imageModel, CityRegistration cityRegistration, CityImageStoragePort cityImageStoragePort) {
+    public CityDetailAIGenerator(@Qualifier("claudeChatClient") ChatClient claudeChatClient, ImageModel imageModel) {
         this.claudeChatClient = claudeChatClient;
         this.imageModel = imageModel;
-        this.cityRegistration = cityRegistration;
-        this.cityImageStoragePort = cityImageStoragePort;
     }
 
     @Override
-    public City generateDetail(City city) {
+    public CityImageDetail generateDetail(City city) {
         // City Description 생성
         CityDescription description  = claudeChatClient.prompt()
                 .system(CITY_DESCRIPTION_SYS_PROMPT)
@@ -56,12 +54,7 @@ public class CityDetailAIGenerator implements CityDetailGenerator {
         // CityDescription 이미지 저장
         String imageId = UUID.randomUUID().toString();
         byte[] imageBytes = Base64.getDecoder().decode(image.getResult().getOutput().getB64Json());
-        cityImageStoragePort.save(imageId, imageBytes);
-
-        city.setDetails(description.summary(), imageId);
-        city.setReady();
-        cityRegistration.register(city);
-        return city;
+        return new CityImageDetail(imageId, description.summary(), imageBytes);
     }
 
     record CityDescription (

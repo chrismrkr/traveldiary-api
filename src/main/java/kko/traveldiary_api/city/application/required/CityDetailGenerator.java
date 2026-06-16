@@ -1,6 +1,7 @@
 package kko.traveldiary_api.city.application.required;
 
 import kko.traveldiary_api.city.domain.City;
+import kko.traveldiary_api.city.domain.CityImageDetail;
 import kko.traveldiary_api.shared.Coordinate;
 
 /**
@@ -8,5 +9,5 @@ import kko.traveldiary_api.shared.Coordinate;
  * 구현체(어댑터)는 infrastructure 계층에서 AI 호출을 담당한다.
  */
 public interface CityDetailGenerator {
-    City generateDetail(City city);
+    CityImageDetail generateDetail(City city);
 }
