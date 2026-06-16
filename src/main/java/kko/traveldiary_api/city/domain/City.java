@@ -37,5 +37,5 @@ public final class City {
     }
 
 
-    public enum Status { PENDING, READY, FAILED }
+    public enum Status { PENDING, DESCRIPTION_READY, READY, FAILED }
 }

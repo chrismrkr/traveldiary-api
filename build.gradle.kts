@@ -22,6 +22,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.ai:spring-ai-starter-model-anthropic")
+	implementation("org.springframework.ai:spring-ai-starter-model-openai")
 	compileOnly("org.projectlombok:lombok")
 	developmentOnly("org.springframework.boot:spring-boot-docker-compose")
 	runtimeOnly("com.h2database:h2")

@@ -1,25 +1,40 @@
-package kko.traveldiary_api.city.adaptor.webapi;
+package kko.traveldiary_api.city.adaptor.ai;
 
-import kko.traveldiary_api.city.application.provided.CityImageAdministrator;
+import kko.traveldiary_api.city.application.provided.CityImageStoragePort;
 import kko.traveldiary_api.city.application.provided.CityRegistration;
 import kko.traveldiary_api.city.application.required.CityDetailGenerator;
 import kko.traveldiary_api.city.domain.City;
-import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.image.ImageModel;
+import org.springframework.ai.image.ImagePrompt;
+import org.springframework.ai.image.ImageResponse;
+import org.springframework.ai.openai.OpenAiImageOptions;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import java.util.Base64;
 import java.util.UUID;
 
 @Component
-@RequiredArgsConstructor
 public class CityDetailAIGenerator implements CityDetailGenerator {
-    private final ChatClient chatClient;
+    private final ChatClient claudeChatClient;
+    private final ImageModel imageModel;
     private final CityRegistration cityRegistration;
-    private final CityImageAdministrator cityImageAdministrator;
+    private final CityImageStoragePort cityImageStoragePort;
+
+    @Autowired
+    public CityDetailAIGenerator(@Qualifier("claudeChatClient") ChatClient claudeChatClient, ImageModel imageModel, CityRegistration cityRegistration, CityImageStoragePort cityImageStoragePort) {
+        this.claudeChatClient = claudeChatClient;
+        this.imageModel = imageModel;
+        this.cityRegistration = cityRegistration;
+        this.cityImageStoragePort = cityImageStoragePort;
+    }
+
     @Override
     public City generateDetail(City city) {
         // City Description 생성
-        CityDescription description  = chatClient.prompt()
+        CityDescription description  = claudeChatClient.prompt()
                 .system(CITY_DESCRIPTION_SYS_PROMPT)
                 .user(u -> u.text("도시 이름: {name}, 위도: {latitude}, 경도: {longitude}")
                         .param("name", city.getName())
@@ -29,14 +44,24 @@ public class CityDetailAIGenerator implements CityDetailGenerator {
                 .entity(CityDescription.class);
 
         // City Description을 바탕으로 이미지 생성
-
+        String imageFullPrompt = CITY_IMAGE_GEN_SYS_PROMPT + description.summary();
+        ImageResponse image = imageModel.call(
+                new ImagePrompt(imageFullPrompt,
+                        OpenAiImageOptions.builder()
+                                .model("dall-e-3")
+                                .quality("standard")
+                                .width(1024).height(1024)
+                                .build()));
 
         // CityDescription 이미지 저장
         String imageId = UUID.randomUUID().toString();
+        byte[] imageBytes = Base64.getDecoder().decode(image.getResult().getOutput().getB64Json());
+        cityImageStoragePort.save(imageId, imageBytes);
 
-
+        city.setDetails(description.summary(), imageId);
         city.setReady();
-        cityRegistration.register();
+        cityRegistration.register(city);
+        return city;
     }
 
     record CityDescription (
@@ -55,7 +80,7 @@ public class CityDetailAIGenerator implements CityDetailGenerator {
             "그리고 너가 하는 설명은 또 다른 생성형 AI를 통해서 설명을 이미지로 형상화하는데 사용된다.";
 
     private static final String CITY_IMAGE_GEN_SYS_PROMPT =
-            "당신은 전세계 도시를 알고 있습니다." +
-            "적절한 도시에 대한 설명을 들었을 때, 그것을 이미지로 형상화할 수 있습니다.";
+            "당신은 전세계 도시를 알고 있습니다. " +
+            "적절한 도시에 대한 설명을 들었을 때, 그것을 이미지로 형상화할 수 있습니다. 설명: ";
 
 }
