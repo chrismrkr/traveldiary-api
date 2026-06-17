@@ -82,8 +82,8 @@ class CityServiceTest {
         Coordinate coordinate = new Coordinate(35.1796, 129.0756); // 부산
         given(cityDescriptionGenerator.generate(any())).willAnswer(invocation -> {
             City city = invocation.getArgument(0);
-            city.setDetails("부산에 대한 설명", "img-busan");
-            city.setReady();
+            city.saveDetails("부산에 대한 설명", "img-busan");
+            city.setStatus(City.Status.READY);
             return city;
         });
 

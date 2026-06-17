@@ -20,8 +20,10 @@ public class CityDescriptionAIGenerator implements CityDescriptionGenerator {
 
     @Override
     public CityDescription generate(City city) {
-        // City Description 생성
-        CityDescription description  = claudeChatClient.prompt()
+        assert city.getName() != null;
+        assert city.getCoordinate() != null && city.getCoordinate().getLatitude() != null && city.getCoordinate().getLongitude() != null;
+
+        return claudeChatClient.prompt()
                 .system(CITY_DESCRIPTION_SYS_PROMPT)
                 .user(u -> u.text("도시 이름: {name}, 위도: {latitude}, 경도: {longitude}")
                         .param("name", city.getName())
@@ -29,8 +31,6 @@ public class CityDescriptionAIGenerator implements CityDescriptionGenerator {
                         .param("longitude", city.getCoordinate().getLongitude()))
                 .call()
                 .entity(CityDescription.class);
-
-        return description;
     }
 
 
@@ -42,6 +42,7 @@ public class CityDescriptionAIGenerator implements CityDescriptionGenerator {
             "설명은 항상 존댓말을 사용하고, 비속어 사용은 절대 하면 안됩니다." +
             "하지만, 너무 공손하게 할 필요도 없고 적당히 공손한 수준해서 캐주얼하게 설명하면 됩니다." +
             "사용자가 도시 이름, 위도, 경도 3가지를 전달하면 이에 맞는 적절한 설명을 제공한다." +
-            "그리고 너가 하는 설명은 또 다른 생성형 AI를 통해서 설명을 이미지로 형상화하는데 사용된다.";
+            "그리고 너가 하는 설명은 또 다른 생성형 AI를 통해서 설명을 이미지로 형상화하는데 사용된다." +
+            "만약, 유저 프롬프트에 도시 이름, 위도, 경도 3가지 대한 정보가 하나라도 없다면 아무것도 답변하지 않습니다. (빈값 답변)";
 
 }
