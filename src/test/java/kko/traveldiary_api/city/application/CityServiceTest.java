@@ -2,7 +2,7 @@ package kko.traveldiary_api.city.application;
 
 import kko.traveldiary_api.city.adaptor.infrastructure.CityJpaRepository;
 import kko.traveldiary_api.city.application.provided.CityFinder;
-import kko.traveldiary_api.city.application.required.CityDetailGenerator;
+import kko.traveldiary_api.city.application.required.CityDescriptionGenerator;
 import kko.traveldiary_api.city.application.required.CityRepository;
 import kko.traveldiary_api.city.domain.City;
 import kko.traveldiary_api.city.domain.CityNotReadyException;
@@ -29,7 +29,7 @@ import static org.mockito.Mockito.verify;
  *
  * 실제 ApplicationEventPublisher 와 이벤트 리스너 빈을 그대로 띄워, 등록 시
  * Publisher → Listener → CityDetailRegistration 포트까지 이벤트 체인이 동작하는지 검증한다.
- * 상세 생성(AI 호출) 어댑터인 {@link CityDetailGenerator} 는 Mock으로 대체한다.
+ * 상세 생성(AI 호출) 어댑터인 {@link CityDescriptionGenerator} 는 Mock으로 대체한다.
  */
 @SpringBootTest
 class CityServiceTest {
@@ -44,7 +44,7 @@ class CityServiceTest {
     private CityJpaRepository cityJpaRepository;
 
     @MockitoBean
-    private CityDetailGenerator cityDetailGenerator;
+    private CityDescriptionGenerator cityDescriptionGenerator;
 
 
     @AfterEach
@@ -71,7 +71,7 @@ class CityServiceTest {
         assertThat(found.getName()).isEqualTo("Seoul");
         assertThat(found.getStatus()).isEqualTo(City.Status.READY);
         // 이미 존재하므로 register() → 이벤트 발행 → 리스너 → 상세 생성 흐름이 트리거되지 않아야 한다.
-        verify(cityDetailGenerator, never()).generateDetail(any());
+        verify(cityDescriptionGenerator, never()).generate(any());
     }
 
     @Test
@@ -80,7 +80,7 @@ class CityServiceTest {
         String name = "busan";
         String placeId = "place-busan";
         Coordinate coordinate = new Coordinate(35.1796, 129.0756); // 부산
-        given(cityDetailGenerator.generateDetail(any())).willAnswer(invocation -> {
+        given(cityDescriptionGenerator.generate(any())).willAnswer(invocation -> {
             City city = invocation.getArgument(0);
             city.setDetails("부산에 대한 설명", "img-busan");
             city.setReady();
@@ -99,6 +99,6 @@ class CityServiceTest {
         // 이벤트가 발행되고(Publisher) 리스너가 이를 수신하여(Listener)
         // CityDetailRegistration 포트가 호출되어 상세 생성기까지 도달했는지 검증한다.
         await().atMost(Duration.ofSeconds(3))
-                .untilAsserted(() -> verify(cityDetailGenerator, times(1)).generateDetail(any()));
+                .untilAsserted(() -> verify(cityDescriptionGenerator, times(1)).generate(any()));
     }
 }

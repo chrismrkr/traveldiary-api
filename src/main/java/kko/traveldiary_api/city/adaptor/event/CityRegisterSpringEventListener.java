@@ -21,7 +21,6 @@ public class CityRegisterSpringEventListener {
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void handle(CityGenerateRequest request) {
         cityDetailRegistration.registerDetail(request);
     }

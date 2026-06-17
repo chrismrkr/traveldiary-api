@@ -16,6 +16,7 @@ public final class City {
     private String cityImageId;
     private Coordinate coordinate;
     private Status status;
+
     @Builder
     private City(Long id, String name, String placeId, String description, String cityImageId, Coordinate coordinate, Status status) {
         this.id = id;
