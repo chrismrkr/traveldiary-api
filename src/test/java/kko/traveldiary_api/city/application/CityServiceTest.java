@@ -5,6 +5,7 @@ import kko.traveldiary_api.city.application.provided.CityFinder;
 import kko.traveldiary_api.city.application.required.CityDescriptionGenerator;
 import kko.traveldiary_api.city.application.required.CityRepository;
 import kko.traveldiary_api.city.domain.City;
+import kko.traveldiary_api.city.domain.CityDescription;
 import kko.traveldiary_api.city.domain.CityNotReadyException;
 import kko.traveldiary_api.shared.Coordinate;
 import org.junit.jupiter.api.*;
@@ -60,7 +61,7 @@ class CityServiceTest {
         cityRepository.save(City.builder()
                 .name("Seoul")
                 .placeId("place-seoul")
-                .description("대한민국의 수도")
+                .cityDescription(new CityDescription("대한민국의 수도", "", "", ""))
                 .cityImageId("img-seoul")
                 .coordinate(coordinate)
                 .status(City.Status.READY)
@@ -82,7 +83,7 @@ class CityServiceTest {
         Coordinate coordinate = new Coordinate(35.1796, 129.0756); // 부산
         given(cityDescriptionGenerator.generate(any())).willAnswer(invocation -> {
             City city = invocation.getArgument(0);
-            city.saveDetails("부산에 대한 설명", "img-busan");
+            city.saveDetails(new CityDescription("부산에 대한 설명", "", "", ""), "img-busan");
             city.setStatus(City.Status.READY);
             return city;
         });
@@ -95,6 +96,7 @@ class CityServiceTest {
         Optional<City> city = cityRepository.findByCoordinate(coordinate);
         assertThat(city).isPresent();
         Assertions.assertTrue(city.get().getId() > 0);
+        Assertions.assertEquals(city.get().getCityDescription().overview(), "부산에 대한 설명");
 
         // 이벤트가 발행되고(Publisher) 리스너가 이를 수신하여(Listener)
         // CityDetailRegistration 포트가 호출되어 상세 생성기까지 도달했는지 검증한다.

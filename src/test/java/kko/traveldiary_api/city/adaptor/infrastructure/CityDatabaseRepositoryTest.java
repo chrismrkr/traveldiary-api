@@ -1,6 +1,7 @@
 package kko.traveldiary_api.city.adaptor.infrastructure;
 
 import kko.traveldiary_api.city.domain.City;
+import kko.traveldiary_api.city.domain.CityDescription;
 import kko.traveldiary_api.shared.Coordinate;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,7 +22,7 @@ record CityDatabaseRepositoryTest(CityDatabaseRepository cityDatabaseRepository)
         return City.builder()
                 .placeId("place-123")
                 .name("Seoul")
-                .description("대한민국의 수도")
+                .cityDescription(new CityDescription("대한민국의 수도", "조선의 도읍", "한강이 흐른다", "지하철을 이용하세요"))
                 .cityImageId("image-1")
                 .coordinate(new Coordinate(37.5665, 126.9780))
                 .status(City.Status.READY)
@@ -36,7 +37,7 @@ record CityDatabaseRepositoryTest(CityDatabaseRepository cityDatabaseRepository)
         assertThat(saved).isNotNull();
         assertThat(saved.getPlaceId()).isEqualTo("place-123");
         assertThat(saved.getName()).isEqualTo("Seoul");
-        assertThat(saved.getDescription()).isEqualTo("대한민국의 수도");
+        assertThat(saved.getCityDescription().overview()).isEqualTo("대한민국의 수도");
         assertThat(saved.getCityImageId()).isEqualTo("image-1");
         assertThat(saved.getStatus()).isEqualTo(City.Status.READY);
         assertThat(saved.getCoordinate().getLatitude()).isEqualByComparingTo("37.566500");

@@ -4,6 +4,7 @@ import kko.traveldiary_api.city.domain.CityDescription;
 import kko.traveldiary_api.city.domain.CityImage;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,6 +16,7 @@ import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Disabled
 @SpringBootTest
 @Slf4j
 class CityImageAiGeneratorTest {

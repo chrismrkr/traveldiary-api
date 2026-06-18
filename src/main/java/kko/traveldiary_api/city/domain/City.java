@@ -9,25 +9,25 @@ public final class City {
     private Long id;
     private String placeId;
     private String name;
-    private String description;
+    private CityDescription cityDescription;
     private String cityImageId;
     private Coordinate coordinate;
     @Setter
     private Status status;
 
     @Builder
-    private City(Long id, String name, String placeId, String description, String cityImageId, Coordinate coordinate, Status status) {
+    private City(Long id, String name, String placeId, CityDescription cityDescription, String cityImageId, Coordinate coordinate, Status status) {
         this.id = id;
         this.name = name;
         this.placeId = placeId;
-        this.description = description;
+        this.cityDescription = cityDescription;
         this.cityImageId = cityImageId;
         this.coordinate = coordinate;
         this.status = status;
     }
 
-    public void saveDetails(String description, String imageId) {
-        this.description = description;
+    public void saveDetails(CityDescription cityDescription, String imageId) {
+        this.cityDescription = cityDescription;
         this.cityImageId = imageId;
     }
 

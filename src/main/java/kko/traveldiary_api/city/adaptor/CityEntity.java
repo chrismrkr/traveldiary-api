@@ -41,8 +41,8 @@ public class CityEntity {
     @Column(nullable = false)
     private String name;
 
-    @Column(columnDefinition = "TEXT")
-    private String description;
+    @Embedded
+    private CityDescriptionEmbeddable description;
 
     @Column(name = "city_image_id")
     private String cityImageId;
@@ -54,7 +54,7 @@ public class CityEntity {
     @Column(nullable = false)
     private City.Status status;
 
-    private CityEntity(Long id, String placeId, String name, String description,
+    private CityEntity(Long id, String placeId, String name, CityDescriptionEmbeddable description,
                        String cityImageId, CoordinateEmbeddable coordinate, City.Status status) {
         this.id = id;
         this.placeId = placeId;
@@ -70,7 +70,7 @@ public class CityEntity {
                 city.getId(),
                 city.getPlaceId(),
                 city.getName(),
-                city.getDescription(),
+                CityDescriptionEmbeddable.fromDomain(city.getCityDescription()),
                 city.getCityImageId(),
                 CoordinateEmbeddable.fromDomain(city.getCoordinate()),
                 city.getStatus()
@@ -82,7 +82,7 @@ public class CityEntity {
                 .id(id)
                 .name(name)
                 .placeId(placeId)
-                .description(description)
+                .cityDescription(description == null ? null : description.toDomain())
                 .cityImageId(cityImageId)
                 .coordinate(coordinate.toDomain())
                 .status(status)

@@ -11,6 +11,7 @@ import kko.traveldiary_api.shared.Coordinate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.NoSuchElementException;
 
@@ -45,9 +46,7 @@ public class CityRegistrationService implements CityRegistration, CityDetailRegi
 
             imageStorage.save(image.id(), image.imageBytes());
 
-
-            // TODO cityDescription
-//            city.saveDetails(cityDescription.summary(), image.id());
+            city.saveDetails(cityDescription, image.id());
             city.setStatus(City.Status.READY);
             repository.save(city);
         } catch (NoSuchElementException ignored) { }

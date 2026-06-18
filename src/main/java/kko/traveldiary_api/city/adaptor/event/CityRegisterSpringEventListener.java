@@ -3,6 +3,7 @@ package kko.traveldiary_api.city.adaptor.event;
 import kko.traveldiary_api.city.application.provided.CityDetailRegistration;
 import kko.traveldiary_api.city.domain.CityGenerateRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
@@ -20,7 +21,7 @@ public class CityRegisterSpringEventListener {
     private final CityDetailRegistration cityDetailRegistration;
 
     @Async
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @EventListener
     public void handle(CityGenerateRequest request) {
         cityDetailRegistration.registerDetail(request);
     }
