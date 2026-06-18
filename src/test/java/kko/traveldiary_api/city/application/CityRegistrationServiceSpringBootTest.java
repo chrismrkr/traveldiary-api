@@ -71,7 +71,7 @@ class CityRegistrationServiceSpringBootTest {
         String name = "seoul";
         String placeId = "placeId-123123";
         Coordinate coordinate = new Coordinate(123.123, 890.102);
-        given(cityDescriptionGenerator.generate(any())).willReturn(new CityDescription("summary"));
+        given(cityDescriptionGenerator.generate(any())).willReturn(new CityDescription("summary", "", "", ""));
         given(cityImageGenerator.generate(any())).willReturn(new CityImage("id-123", "abcabc".getBytes(StandardCharsets.UTF_8)));
         willDoNothing().given(imageStorage).save(any(), any());
 
@@ -90,7 +90,7 @@ class CityRegistrationServiceSpringBootTest {
         String name = "seoul";
         String placeId = "placeId-123123";
         Coordinate coordinate = new Coordinate(123.123, 890.102);
-        given(cityDescriptionGenerator.generate(any())).willReturn(new CityDescription("summary"));
+        given(cityDescriptionGenerator.generate(any())).willReturn(new CityDescription("summary", "", "", ""));
         given(cityImageGenerator.generate(any())).willReturn(new CityImage("id-123", "abcabc".getBytes(StandardCharsets.UTF_8)));
         willThrow(new IllegalArgumentException("PERSIST FAILED")).given(imageStorage).save(any(), any());
 

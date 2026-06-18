@@ -21,7 +21,7 @@ class CityDescriptionAIGeneratorTest {
 
 
     @Test
-    void City의_이름_위도_경도를_활용하여_도시_설명을_생성형_AI에게_요청할_수_있다() {
+    void 서울의_이름_위도_경도를_활용하여_도시_설명을_생성형_AI에게_요청할_수_있다() {
         // given
         log.info("apiKey: {}", apiKey);
         log.info("System Env: {}", System.getenv("ANTHROPIC_API_KEY"));
@@ -35,12 +35,59 @@ class CityDescriptionAIGeneratorTest {
         CityDescription description = cityDescriptionAIGenerator.generate(seoul);
 
         // then
-        Assertions.assertNotNull(description.summary());
+        Assertions.assertNotNull(description.overview());
+        Assertions.assertNotNull(description.historyAndCulture());
+        Assertions.assertNotNull(description.funFact());
+        Assertions.assertNotNull(description.localTip());
+        String explanation = description.getExplanation();
+        log.info("Seoul: {}", explanation);
+
     }
 
     @Test
-    void 이름_위도_경도_중_하나만_없어도_빈_값을_반환_받는다() {
+    void 포르투의_이름_위도_경도를_활용하여_도시_설명을_생성형_AI에게_요청할_수_있다() {
+        // given
+        log.info("apiKey: {}", apiKey);
+        log.info("System Env: {}", System.getenv("ANTHROPIC_API_KEY"));
+        City porto = City.builder()
+                .name("Porto")
+                .placeId("Porto-001")
+                .coordinate(new Coordinate(41.1496, -8.6110))
+                .build();
 
+        // when
+        CityDescription description = cityDescriptionAIGenerator.generate(porto);
+
+        // then
+        Assertions.assertNotNull(description.overview());
+        Assertions.assertNotNull(description.historyAndCulture());
+        Assertions.assertNotNull(description.funFact());
+        Assertions.assertNotNull(description.localTip());
+        String explanation = description.getExplanation();
+        log.info("Porto: {}", explanation);
+    }
+
+    @Test
+    void 바르셀로나의_이름_위도_경도를_활용하여_도시_설명을_생성형_AI에게_요청할_수_있다() {
+        // given
+        log.info("apiKey: {}", apiKey);
+        log.info("System Env: {}", System.getenv("ANTHROPIC_API_KEY"));
+        City barcelona = City.builder()
+                .name("Barcelona")
+                .placeId("barcelona-001")
+                .coordinate(new Coordinate(41.3888, 2.1590))
+                .build();
+
+        // when
+        CityDescription description = cityDescriptionAIGenerator.generate(barcelona);
+
+        // then
+        Assertions.assertNotNull(description.overview());
+        Assertions.assertNotNull(description.historyAndCulture());
+        Assertions.assertNotNull(description.funFact());
+        Assertions.assertNotNull(description.localTip());
+        String explanation = description.getExplanation();
+        log.info("Barcelona: {}", explanation);
     }
 
 }

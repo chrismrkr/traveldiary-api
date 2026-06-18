@@ -1,6 +1,7 @@
 package kko.traveldiary_api.city.adaptor.ai;
 
 import kko.traveldiary_api.city.application.required.CityImageGenerator;
+import kko.traveldiary_api.city.domain.CityDescription;
 import kko.traveldiary_api.city.domain.CityImage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.image.ImageModel;
@@ -18,15 +19,9 @@ public class CityImageAiGenerator implements CityImageGenerator {
     private final ImageModel imageModel;
 
     @Override
-    public CityImage generate(String description) {
-        String imageFullPrompt = CITY_IMAGE_GEN_SYS_PROMPT + description;
-        ImageResponse image = imageModel.call(
-                new ImagePrompt(imageFullPrompt,
-                        OpenAiImageOptions.builder()
-                                .model("dall-e-3")
-                                .quality("standard")
-                                .width(1024).height(1024)
-                                .build()));
+    public CityImage generate(CityDescription description) {
+        String imageFullPrompt = CITY_IMAGE_GEN_SYS_PROMPT + description.getExplanation();
+        ImageResponse image = imageModel.call(new ImagePrompt(imageFullPrompt));
 
         String imageId = UUID.randomUUID().toString();
         byte[] imageBytes = Base64.getDecoder().decode(image.getResult().getOutput().getB64Json());
@@ -34,6 +29,9 @@ public class CityImageAiGenerator implements CityImageGenerator {
     }
 
     private static final String CITY_IMAGE_GEN_SYS_PROMPT =
-            "당신은 전세계 도시를 알고 있습니다. " +
-                    "적절한 도시에 대한 설명을 들었을 때, 그것을 이미지로 형상화할 수 있습니다. 설명: ";
+            "A travel illustration of a city, based on the following description. " +
+                    "Match the visual mood, color palette, and lighting to the atmosphere of this specific city " +
+                    "as conveyed in the description — it may be vibrant, cool, moody, sunny, historic, or modern depending on the place. " +
+                    "Painterly, slightly stylized travel poster aesthetic. " +
+                    "No text or letters in the image. Description: ";
 }

@@ -41,11 +41,13 @@ public class CityRegistrationService implements CityRegistration, CityDetailRegi
             city = repository.findByPlaceId(request.placeId()).orElseThrow();
 
             CityDescription cityDescription = cityDescriptionGenerator.generate(city);
-            CityImage image = imageGenerator.generate(cityDescription.summary());
+            CityImage image = imageGenerator.generate(cityDescription);
 
             imageStorage.save(image.id(), image.imageBytes());
 
-            city.saveDetails(cityDescription.summary(), image.id());
+
+            // TODO cityDescription
+//            city.saveDetails(cityDescription.summary(), image.id());
             city.setStatus(City.Status.READY);
             repository.save(city);
         } catch (NoSuchElementException ignored) { }

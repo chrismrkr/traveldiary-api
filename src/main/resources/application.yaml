@@ -13,10 +13,13 @@ spring:
         options:
           model: claude-sonnet-4-5
           max-tokens: 1024
-          temperature: 0.7
+          temperature: 0
     openai:
       api-key: ${OPENAI_API_KEY} # 환경변수로 주입
       image:
         options:
-          model: dall-e-3
+          model: gpt-image-1
+          quality: medium
+          width: 1024
+          height: 1024
 
