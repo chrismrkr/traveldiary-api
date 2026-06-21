@@ -12,5 +12,5 @@ public interface JourneyRepository {
     Optional<Journey> findById(Long journeyId);
     Optional<Journey> findByIdWithCityVisit(Long journeyId);
     Journey save(Journey journey);
-    CityVisit save(CityVisit cityVisit);
+    void deleteJourney(Long journeyId);
 }

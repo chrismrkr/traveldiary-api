@@ -10,4 +10,5 @@ public interface JourneyManager {
     Journey register(JourneyRegisterDto registerDto);
     Journey modifyDate(Long journeyId, LocalDate startDate, LocalDate endDate);
     void adjustVisibility(Long id, Visibility visibility);
+    void delete(Long journeyId);
 }

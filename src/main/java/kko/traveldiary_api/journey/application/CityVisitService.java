@@ -2,6 +2,7 @@ package kko.traveldiary_api.journey.application;
 
 import kko.traveldiary_api.journey.application.provided.CityVisitManager;
 import kko.traveldiary_api.journey.application.required.CityQueryPort;
+import kko.traveldiary_api.journey.application.required.CityVisitRepository;
 import kko.traveldiary_api.journey.application.required.JourneyRepository;
 import kko.traveldiary_api.journey.domain.CityVisit;
 import kko.traveldiary_api.journey.domain.Journey;
@@ -15,7 +16,9 @@ import java.time.LocalDate;
 @RequiredArgsConstructor
 public class CityVisitService implements CityVisitManager {
     private final JourneyRepository journeyRepository;
+    private final CityVisitRepository cityVisitRepository;
     private final CityQueryPort cityQueryPort;
+
     @Override
     public CityVisit visit(Long journeyId, String cityName, String cityId, Coordinate coordinate,
                            LocalDate startDate, LocalDate endDate) {
@@ -27,11 +30,24 @@ public class CityVisitService implements CityVisitManager {
                 .journey(journey).cityId(cityInfo.cityId())
                 .startDate(startDate).endDate(endDate)
                 .build();
-        return journeyRepository.save(cityVisit);
+        cityVisit.validateVisitedDate(journey, startDate, endDate);
+
+        return cityVisitRepository.save(cityVisit);
     }
 
     @Override
-    public void delete(Long journeyId, Long cityId) {
-
+    public CityVisit changeDate(Long cityVisitId, LocalDate startDate, LocalDate endDate) {
+        CityVisit cityVisit = cityVisitRepository.findCityVisitByIdWithJourney(cityVisitId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid CityVisit Id: Not Found"));
+        cityVisit.validateVisitedDate(cityVisit.getJourney(), startDate, endDate);
+        cityVisit.changeStartDate(startDate);
+        cityVisit.changeEndDate(endDate);
+        return cityVisitRepository.save(cityVisit);
     }
+
+    @Override
+    public void delete(Long cityVisitId) {
+        cityVisitRepository.deleteCityVisit(cityVisitId);
+    }
+
 }

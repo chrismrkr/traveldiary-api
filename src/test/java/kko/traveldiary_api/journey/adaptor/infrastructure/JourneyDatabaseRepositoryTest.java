@@ -9,6 +9,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.TestConstructor;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -116,5 +117,14 @@ record JourneyDatabaseRepositoryTest(JourneyDatabaseRepository repository, TestE
         // 자식 -> 부모 역참조는 동일한 journey id 를 가리킨다.
         assertThat(found.get().getCityVisitList())
                 .allSatisfy(v -> assertThat(v.getJourney().getId()).isEqualTo(journey.getId()));
+    }
+
+    @Test
+    @DisplayName("CityVisit을 Journey와 함께 조회할 수 있다.")
+    void findCityVisitByIdWithJourney() {
+        // TODO
+        // given
+        // when
+        // then
     }
 }

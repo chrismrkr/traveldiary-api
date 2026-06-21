@@ -8,5 +8,7 @@ import java.time.LocalDate;
 public interface CityVisitManager {
     CityVisit visit(Long journeyId, String cityName, String cityId, Coordinate coordinate,
                     LocalDate startDate, LocalDate endDate);
-    void delete(Long journeyId, Long cityId);
+    CityVisit changeDate(Long cityVisitId, LocalDate startDate, LocalDate endDate);
+    void delete(Long cityVisitId);
+
 }

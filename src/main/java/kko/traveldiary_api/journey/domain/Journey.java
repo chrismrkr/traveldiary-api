@@ -55,26 +55,36 @@ public class Journey {
 
     public void deactivate() {
         this.isActive = false;
+        touch();
     }
 
     public void modifyName(String name) {
         this.name = name;
+        touch();
     }
 
     public void modifyVisibility(Visibility visibility) {
         this.visibility = visibility;
+        touch();
     }
 
     public void changeStartDate(LocalDate startDate) {
         this.startDate = startDate;
+        touch();
     }
 
     public void changeEndDate(LocalDate endDate) {
         this.endDate = endDate;
+        touch();
     }
 
     public void visit(CityVisit cityVisit) {
         cityVisitList.add(cityVisit);
         cityVisit.linkJourney(this);
+        touch();
+    }
+
+    private void touch() {
+        this.lastModifiedAt = LocalDateTime.now();
     }
 }

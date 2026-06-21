@@ -63,4 +63,9 @@ public class JourneyService implements JourneyFinder, JourneyManager {
         journey.modifyVisibility(visibility);
         repository.save(journey);
     }
+
+    @Override
+    public void delete(Long journeyId) {
+        repository.deleteJourney(journeyId);
+    }
 }
