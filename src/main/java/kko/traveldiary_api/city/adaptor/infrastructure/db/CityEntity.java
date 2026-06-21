@@ -1,4 +1,4 @@
-package kko.traveldiary_api.city.adaptor;
+package kko.traveldiary_api.city.adaptor.infrastructure.db;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;

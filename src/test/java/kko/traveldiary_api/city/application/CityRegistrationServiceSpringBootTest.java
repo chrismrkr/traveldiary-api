@@ -1,6 +1,6 @@
 package kko.traveldiary_api.city.application;
 
-import kko.traveldiary_api.city.adaptor.infrastructure.CityJpaRepository;
+import kko.traveldiary_api.city.adaptor.infrastructure.db.CityJpaRepository;
 import kko.traveldiary_api.city.application.required.*;
 import kko.traveldiary_api.city.domain.City;
 import kko.traveldiary_api.city.domain.CityDescription;
@@ -54,15 +54,17 @@ class CityRegistrationServiceSpringBootTest {
         Coordinate coordinate = new Coordinate(123.123, 890.102);
 
         // when
-        cityRegistrationService.register(name, placeId, coordinate);
-        cityRegistrationService.register(name, placeId, coordinate);
-        cityRegistrationService.register(name, placeId, coordinate);
+        City city1 = cityRegistrationService.register(name, placeId, coordinate);
+        City city2 = cityRegistrationService.register(name, placeId, coordinate);
+        City city3 = cityRegistrationService.register(name, placeId, coordinate);
 
         // then
         await().atMost(Duration.ofSeconds(3))
                 .untilAsserted(() -> verify(eventPublisher, times(1)).publish(any()));
         City city = cityRepository.findByPlaceId(placeId).get();
         Assertions.assertTrue(city.getId() > 0);
+        Assertions.assertEquals(city2.getId(), city1.getId());
+        Assertions.assertEquals(city3.getId(), city1.getId());
     }
 
     @Test

@@ -7,5 +7,5 @@ import java.util.Optional;
 
 public interface JourneyFinder {
     List<Journey> findMyJourneys(Long memberId);
-    Journey find(Long journeyId);
+    Journey findJourney(Long journeyId);
 }

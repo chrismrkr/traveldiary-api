@@ -1,7 +1,7 @@
 package kko.traveldiary_api.journey.application;
 
 import kko.traveldiary_api.journey.application.provided.JourneyFinder;
-import kko.traveldiary_api.journey.application.provided.JourneyModifier;
+import kko.traveldiary_api.journey.application.provided.JourneyManager;
 import kko.traveldiary_api.journey.application.required.JourneyRepository;
 import kko.traveldiary_api.journey.domain.Journey;
 import kko.traveldiary_api.journey.domain.Visibility;
@@ -16,7 +16,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class JourneyService implements JourneyFinder, JourneyModifier {
+public class JourneyService implements JourneyFinder, JourneyManager {
     private final JourneyRepository repository;
 
     @Override
@@ -25,7 +25,7 @@ public class JourneyService implements JourneyFinder, JourneyModifier {
     }
 
     @Override
-    public Journey find(Long journeyId) {
+    public Journey findJourney(Long journeyId) {
         return repository.findById(journeyId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid JourneyId: Not Found"));
     }
@@ -48,7 +48,8 @@ public class JourneyService implements JourneyFinder, JourneyModifier {
     @Override
     @Transactional
     public Journey modifyDate(Long journeyId, LocalDate startDate, LocalDate endDate) {
-        Journey journey = repository.findById(journeyId).orElseThrow(() -> new IllegalArgumentException("Invalid JourneyId: Not Found"));
+        Journey journey = repository.findById(journeyId).orElseThrow(() ->
+                new IllegalArgumentException("Invalid JourneyId: Not Found"));
         journey.changeStartDate(startDate);
         journey.changeEndDate(endDate);
         return repository.save(journey);
@@ -57,7 +58,8 @@ public class JourneyService implements JourneyFinder, JourneyModifier {
     @Override
     @Transactional
     public void adjustVisibility(Long journeyId, Visibility visibility) {
-        Journey journey = repository.findById(journeyId).orElseThrow(() -> new IllegalArgumentException("Invalid JourneyId: Not Found"));
+        Journey journey = repository.findById(journeyId).orElseThrow(() ->
+                new IllegalArgumentException("Invalid JourneyId: Not Found"));
         journey.modifyVisibility(visibility);
         repository.save(journey);
     }

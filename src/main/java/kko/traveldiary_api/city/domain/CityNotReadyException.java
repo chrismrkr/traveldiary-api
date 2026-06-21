@@ -8,6 +8,11 @@ import kko.traveldiary_api.shared.Coordinate;
  * 컨트롤러에서는 HTTP 202(Accepted) 또는 404 로 매핑하여 프론트가 폴링하도록 한다.
  */
 public class CityNotReadyException extends RuntimeException {
+    public CityNotReadyException(City city) {
+        super("City is being generated for coordinate: ("
+                + city.getCoordinate().getLatitude() + ", " + city.getCoordinate().getLongitude() + ")");
+    }
+
     public CityNotReadyException(Coordinate coordinate) {
         super("City is being generated for coordinate: ("
                 + coordinate.getLatitude() + ", " + coordinate.getLongitude() + ")");

@@ -25,14 +25,18 @@ public class CityRegistrationService implements CityRegistration, CityDetailRegi
     private final CityImageStoragePort imageStorage;
 
     @Override
-    public void register(String name, String placeId, Coordinate coordinate) {
+    public City register(String name, String placeId, Coordinate coordinate) {
+        City city = null;
         try {
-            City newCity = City.builder()
+            city = City.builder()
                     .name(name).placeId(placeId).coordinate(coordinate)
                     .status(City.Status.PENDING).build();
-            repository.save(newCity);
+            city = repository.save(city);
             eventPublisher.publish(new CityGenerateRequest(name, placeId, coordinate));
-        } catch (DataIntegrityViolationException ignored) { }
+        } catch (DataIntegrityViolationException ignored) {
+            return repository.findByCoordinate(coordinate).get();
+        }
+        return city;
     }
 
     @Override
@@ -59,7 +63,7 @@ public class CityRegistrationService implements CityRegistration, CityDetailRegi
     }
 
     @Override
-    public void register(City city) {
-        repository.save(city);
+    public City register(City city) {
+        return repository.save(city);
     }
 }

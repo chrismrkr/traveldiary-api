@@ -1,6 +1,5 @@
-package kko.traveldiary_api.city.adaptor.infrastructure;
+package kko.traveldiary_api.city.adaptor.infrastructure.db;
 
-import kko.traveldiary_api.city.adaptor.CityEntity;
 import kko.traveldiary_api.city.application.required.CityRepository;
 import kko.traveldiary_api.city.domain.City;
 import kko.traveldiary_api.shared.Coordinate;

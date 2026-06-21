@@ -20,8 +20,8 @@ public class CityService implements CityFinder {
     public City findOrRegister(String name, String placeId, Coordinate coordinate) {
         return repository.findByCoordinate(coordinate)
                 .orElseThrow(() -> {
-                    cityRegistration.register(name, placeId, coordinate);
-                    return new CityNotReadyException(coordinate);
+                    City city = cityRegistration.register(name, placeId, coordinate);
+                    return new CityNotReadyException(city);
                 });
     }
 
