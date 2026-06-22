@@ -9,6 +9,7 @@ import kko.traveldiary_api.journey.domain.Journey;
 import kko.traveldiary_api.shared.Coordinate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 
@@ -20,6 +21,7 @@ public class CityVisitService implements CityVisitManager {
     private final CityQueryPort cityQueryPort;
 
     @Override
+    @Transactional
     public CityVisit visit(Long journeyId, String cityName, String cityId, Coordinate coordinate,
                            LocalDate startDate, LocalDate endDate) {
         Journey journey = journeyRepository.findById(journeyId)
@@ -30,16 +32,16 @@ public class CityVisitService implements CityVisitManager {
                 .journey(journey).cityId(cityInfo.cityId())
                 .startDate(startDate).endDate(endDate)
                 .build();
-        cityVisit.validateVisitedDate(journey, startDate, endDate);
+        cityVisit.validateVisitedDate(startDate, endDate);
 
         return cityVisitRepository.save(cityVisit);
     }
 
     @Override
+    @Transactional
     public CityVisit changeDate(Long cityVisitId, LocalDate startDate, LocalDate endDate) {
         CityVisit cityVisit = cityVisitRepository.findCityVisitByIdWithJourney(cityVisitId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid CityVisit Id: Not Found"));
-        cityVisit.validateVisitedDate(cityVisit.getJourney(), startDate, endDate);
         cityVisit.changeStartDate(startDate);
         cityVisit.changeEndDate(endDate);
         return cityVisitRepository.save(cityVisit);

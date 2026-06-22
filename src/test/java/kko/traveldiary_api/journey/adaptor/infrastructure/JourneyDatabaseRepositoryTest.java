@@ -3,6 +3,8 @@ package kko.traveldiary_api.journey.adaptor.infrastructure;
 import kko.traveldiary_api.journey.domain.CityVisit;
 import kko.traveldiary_api.journey.domain.Journey;
 import kko.traveldiary_api.journey.domain.Visibility;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -20,7 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DataJpaTest
 @Import(JourneyDatabaseRepository.class)
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
-record JourneyDatabaseRepositoryTest(JourneyDatabaseRepository repository, TestEntityManager em) {
+record JourneyDatabaseRepositoryTest(JourneyDatabaseRepository repository, TestEntityManager em, JourneyJpaRepository journeyJpaRepository, CityVisitJpaRepository cityVisitJpaRepository) {
 
     private Journey sampleJourney(Long memberId, String name) {
         return Journey.create(memberId, name,
@@ -34,6 +36,13 @@ record JourneyDatabaseRepositoryTest(JourneyDatabaseRepository repository, TestE
                 .endDate(LocalDate.of(2026, 1, 4))
                 .build();
     }
+
+    @BeforeEach
+    void init() {
+        journeyJpaRepository.deleteAll();
+        cityVisitJpaRepository.deleteAll();
+    }
+
 
     @Test
     @DisplayName("Journey를 저장하면 id가 부여된 도메인으로 반환된다")
@@ -122,9 +131,22 @@ record JourneyDatabaseRepositoryTest(JourneyDatabaseRepository repository, TestE
     @Test
     @DisplayName("CityVisit을 Journey와 함께 조회할 수 있다.")
     void findCityVisitByIdWithJourney() {
-        // TODO
         // given
+        Journey journey = repository.save(sampleJourney(1L, "도쿄 여행"));
+        CityVisit cityVisit = cityVisit(100L);
+        journey.visit(cityVisit);
+        cityVisit = repository.save(cityVisit);
+        em.flush();
+        em.clear();
+
         // when
+        Optional<CityVisit> found = repository.findCityVisitByIdWithJourney(cityVisit.getId());
+
         // then
+        Assertions.assertTrue(found.isPresent());
+        Assertions.assertEquals(found.get().getJourney().getId(), journey.getId());
+        Assertions.assertEquals(found.get().getId(), cityVisit.getId());
+        Assertions.assertEquals(found.get().getCityId(), cityVisit.getCityId());
+
     }
 }

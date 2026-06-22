@@ -46,17 +46,15 @@ public class JourneyService implements JourneyFinder, JourneyManager {
     }
 
     @Override
-    @Transactional
     public Journey modifyDate(Long journeyId, LocalDate startDate, LocalDate endDate) {
-        Journey journey = repository.findById(journeyId).orElseThrow(() ->
+        Journey journey = repository.findByIdWithCityVisit(journeyId).orElseThrow(() ->
                 new IllegalArgumentException("Invalid JourneyId: Not Found"));
-        journey.changeStartDate(startDate);
-        journey.changeEndDate(endDate);
+        journey.changeStartDate(startDate, journey.getCityVisitList());
+        journey.changeEndDate(endDate, journey.getCityVisitList());
         return repository.save(journey);
     }
 
     @Override
-    @Transactional
     public void adjustVisibility(Long journeyId, Visibility visibility) {
         Journey journey = repository.findById(journeyId).orElseThrow(() ->
                 new IllegalArgumentException("Invalid JourneyId: Not Found"));

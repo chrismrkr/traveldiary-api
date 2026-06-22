@@ -27,10 +27,16 @@ public class CityVisit {
     }
 
     public void changeStartDate(LocalDate startDate) {
+        if(startDate.isBefore(journey.getStartDate())) {
+            throw new IllegalArgumentException("도시 방문일는 여행 시작일 이전일 수 없음");
+        }
         this.startDate = startDate;
     }
 
     public void changeEndDate(LocalDate endDate) {
+        if(endDate.isAfter(journey.getEndDate())) {
+            throw new IllegalArgumentException("도시 방문일은 여행 종료일 이후일 수 없음");
+        }
         this.endDate = endDate;
     }
 
@@ -38,10 +44,7 @@ public class CityVisit {
         this.journey = journey;
     }
 
-    public void validateVisitedDate(Journey journey, LocalDate startDate, LocalDate endDate) {
-        if(startDate.isBefore(journey.getStartDate())) {
-            throw new IllegalArgumentException("도시 방문일는 여행 시작일 이전일 수 없음");
-        }
+    public void validateVisitedDate(LocalDate startDate, LocalDate endDate) {
         if(endDate.isAfter(journey.getEndDate())) {
             throw new IllegalArgumentException("도시 방문일은 여행 종료일 이후일 수 없음");
         }

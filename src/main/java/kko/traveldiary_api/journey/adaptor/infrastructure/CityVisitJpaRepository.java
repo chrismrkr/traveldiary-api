@@ -8,6 +8,6 @@ import java.util.Optional;
 
 public interface CityVisitJpaRepository extends JpaRepository<CityVisitEntity, Long> {
 
-    @Query("SELECT cv FROM CityVisitEntity JOIN FETCH cv.journey WHERE cv.id = :cityVisitId")
+    @Query("SELECT cv FROM CityVisitEntity cv JOIN FETCH cv.journey WHERE cv.id = :cityVisitId")
     Optional<CityVisitEntity> findByIdFetchWithJourney(@Param("cityVisitId") Long cityVisitId);
 }

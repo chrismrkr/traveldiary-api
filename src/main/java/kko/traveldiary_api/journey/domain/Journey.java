@@ -68,12 +68,22 @@ public class Journey {
         touch();
     }
 
-    public void changeStartDate(LocalDate startDate) {
+    public void changeStartDate(LocalDate startDate, List<CityVisit> cityVisitList) {
+        for(CityVisit cityVisit : cityVisitList) {
+            if(cityVisit.getStartDate().isBefore(startDate)) {
+                throw new IllegalArgumentException("Journey 시작일 보다 도시 방문 시작일이 이전일 수 없음");
+            }
+        }
         this.startDate = startDate;
         touch();
     }
 
-    public void changeEndDate(LocalDate endDate) {
+    public void changeEndDate(LocalDate endDate, List<CityVisit> cityVisitList) {
+        for(CityVisit cityVisit : cityVisitList) {
+            if(cityVisit.getEndDate().isAfter(endDate)) {
+                throw new IllegalArgumentException("도시 방문 종료일 보다 Journey 종료일이 빠를 수 없음");
+            }
+        }
         this.endDate = endDate;
         touch();
     }
