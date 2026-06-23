@@ -30,10 +30,6 @@ import static org.mockito.Mockito.verify;
 
 /**
  * CityService 통합 테스트.
- *
- * 실제 ApplicationEventPublisher 와 이벤트 리스너 빈을 그대로 띄워, 등록 시
- * Publisher → Listener → CityDetailRegistration 포트까지 이벤트 체인이 동작하는지 검증한다.
- * 상세 생성(AI 호출) 어댑터인 {@link CityDescriptionGenerator} 는 Mock으로 대체한다.
  */
 @SpringBootTest
 class CityServiceTest {
