@@ -2,6 +2,7 @@ package kko.traveldiary_api.post.application;
 
 import kko.traveldiary_api.post.application.provided.PostFinder;
 import kko.traveldiary_api.post.application.provided.PostManager;
+import kko.traveldiary_api.post.application.required.PostRepository;
 import kko.traveldiary_api.post.domain.Post;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -12,9 +13,11 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class PostService implements PostFinder, PostManager {
+    private final PostRepository postRepository;
+
     @Override
     public Optional<Post> search(Long postId) {
-        return Optional.empty();
+        return postRepository.findById(postId);
     }
 
     @Override
