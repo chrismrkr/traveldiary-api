@@ -32,7 +32,6 @@ public class PostEntity {
     @Column(nullable = false)
     private LocalDateTime modifiedAt;
 
-    // 매퍼에서 도메인 → 엔티티 전환 시 사용
     public PostEntity(Long id, Long cityVisitId, PlacePointEmbeddable placePoint,
                       String content, LocalDateTime createdAt, LocalDateTime modifiedAt) {
         this.id = id;
