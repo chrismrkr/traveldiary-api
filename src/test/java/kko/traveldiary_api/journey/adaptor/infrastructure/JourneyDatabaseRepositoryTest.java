@@ -22,7 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DataJpaTest
 @Import(JourneyDatabaseRepository.class)
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
-record JourneyDatabaseRepositoryTest(JourneyDatabaseRepository repository, TestEntityManager em, JourneyJpaRepository journeyJpaRepository, CityVisitJpaRepository cityVisitJpaRepository) {
+햐record JourneyDatabaseRepositoryTest(JourneyDatabaseRepository repository, TestEntityManager em, JourneyJpaRepository journeyJpaRepository, CityVisitJpaRepository cityVisitJpaRepository) {
 
     private Journey sampleJourney(Long memberId, String name) {
         return Journey.create(memberId, name,
