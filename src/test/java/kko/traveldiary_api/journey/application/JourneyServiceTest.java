@@ -1,5 +1,6 @@
 package kko.traveldiary_api.journey.application;
 
+import kko.traveldiary_api.journey.adaptor.controller.dto.request.JourneyPatchReqDto;
 import kko.traveldiary_api.journey.adaptor.infrastructure.CityVisitJpaRepository;
 import kko.traveldiary_api.journey.adaptor.infrastructure.JourneyJpaRepository;
 import kko.traveldiary_api.journey.application.required.CityVisitRepository;
@@ -7,7 +8,7 @@ import kko.traveldiary_api.journey.application.required.JourneyRepository;
 import kko.traveldiary_api.journey.domain.CityVisit;
 import kko.traveldiary_api.journey.domain.Journey;
 import kko.traveldiary_api.journey.domain.Visibility;
-import kko.traveldiary_api.journey.dto.JourneyRegisterDto;
+import kko.traveldiary_api.journey.adaptor.controller.dto.request.JourneyRegisterReqDto;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -100,7 +101,7 @@ class JourneyServiceTest {
     @Test
     @DisplayName("Journey를 등록할 수 있다")
     void register() {
-        JourneyRegisterDto dto = new JourneyRegisterDto(1L, START, END, "도쿄 여행", "PUBLIC");
+        JourneyRegisterReqDto dto = new JourneyRegisterReqDto(1L, START, END, "도쿄 여행", "PUBLIC");
 
         Journey result = journeyService.register(dto);
 
@@ -122,7 +123,7 @@ class JourneyServiceTest {
     @Test
     @DisplayName("잘못된 Visibility 문자열로 등록하면 예외가 발생한다")
     void register_invalidVisibility() {
-        JourneyRegisterDto dto = new JourneyRegisterDto(1L, START, END, "이상한 여행", "UNKNOWN");
+        JourneyRegisterReqDto dto = new JourneyRegisterReqDto(1L, START, END, "이상한 여행", "UNKNOWN");
 
         assertThatThrownBy(() -> journeyService.register(dto))
                 .isInstanceOf(IllegalArgumentException.class);
@@ -134,8 +135,9 @@ class JourneyServiceTest {
         Journey journey = saveJourney(1L, "도쿄 여행");
         addCityVisit(journey, LocalDate.of(2026, 1, 3), LocalDate.of(2026, 1, 7));
 
-        Journey result = journeyService.modifyDate(
-                journey.getId(), LocalDate.of(2026, 1, 2), LocalDate.of(2026, 1, 9));
+        Journey result = journeyService.modify(
+                new JourneyPatchReqDto(
+                journey.getId(), LocalDate.of(2026, 1, 2), LocalDate.of(2026, 1, 9), null, null));
 
         assertThat(result.getStartDate()).isEqualTo(LocalDate.of(2026, 1, 2));
         assertThat(result.getEndDate()).isEqualTo(LocalDate.of(2026, 1, 9));
@@ -152,8 +154,9 @@ class JourneyServiceTest {
         addCityVisit(journey, LocalDate.of(2026, 1, 3), LocalDate.of(2026, 1, 7));
 
         // 새 시작일(1/5) 이 도시 방문 시작일(1/3) 보다 늦다 → 거부
-        assertThatThrownBy(() -> journeyService.modifyDate(
-                journey.getId(), LocalDate.of(2026, 1, 5), END))
+        assertThatThrownBy(() -> journeyService.modify(
+                new JourneyPatchReqDto(journey.getId(), LocalDate.of(2026, 1, 5), END, null, null)
+                ))
                 .isInstanceOf(IllegalArgumentException.class);
 
         // 거부되었으므로 저장되지 않아 기존 값이 유지된다.
@@ -168,8 +171,10 @@ class JourneyServiceTest {
         addCityVisit(journey, LocalDate.of(2026, 1, 3), LocalDate.of(2026, 1, 8));
 
         // 새 종료일(1/7) 이 도시 방문 종료일(1/8) 보다 빠르다 → 거부
-        assertThatThrownBy(() -> journeyService.modifyDate(
-                journey.getId(), LocalDate.of(2026, 1, 2), LocalDate.of(2026, 1, 7)))
+        assertThatThrownBy(() -> journeyService.modify(
+                new JourneyPatchReqDto(
+                journey.getId(), LocalDate.of(2026, 1, 2), LocalDate.of(2026, 1, 7), null, null)
+                ))
                 .isInstanceOf(IllegalArgumentException.class);
 
         // 거부되었으므로 저장되지 않아 기존 값이 유지된다.
@@ -182,10 +187,33 @@ class JourneyServiceTest {
     void changeVisibility() {
         Journey journey = saveJourney(1L, "도쿄 여행"); // PUBLIC 으로 생성
 
-        journeyService.adjustVisibility(journey.getId(), Visibility.PRIVATE);
+        Journey aPrivate = journeyService.modify(
+                new JourneyPatchReqDto(
+                        journey.getId(), null, null, null, "PRIVATE")
+        );
 
         Journey reloaded = journeyService.findJourney(journey.getId());
         assertThat(reloaded.getVisibility()).isEqualTo(Visibility.PRIVATE);
+    }
+
+    @Test
+    @DisplayName("Journey의 이름을 변경할 수 있다")
+    void modifyName() {
+        Journey journey = saveJourney(1L, "도쿄 여행");
+
+        journeyService.modify(new JourneyPatchReqDto(
+                journey.getId(), null, null, "오사카 여행", null));
+
+        Journey reloaded = journeyService.findJourney(journey.getId());
+        assertThat(reloaded.getName()).isEqualTo("오사카 여행");
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 Journey를 수정하면 예외가 발생한다")
+    void modify_notFound() {
+        assertThatThrownBy(() -> journeyService.modify(
+                new JourneyPatchReqDto(99_999L, START, END, null, null)))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test

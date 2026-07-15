@@ -88,6 +88,10 @@ public class Journey {
         touch();
     }
 
+    public void changeName(String name) {
+        this.name = name;
+    }
+
     public void visit(CityVisit cityVisit) {
         cityVisitList.add(cityVisit);
         cityVisit.linkJourney(this);

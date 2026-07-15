@@ -1,14 +1,15 @@
 package kko.traveldiary_api.journey.application;
 
+import kko.traveldiary_api.journey.adaptor.controller.dto.request.JourneyPatchReqDto;
+import kko.traveldiary_api.journey.adaptor.infrastructure.JourneyJpaRepository;
 import kko.traveldiary_api.journey.application.provided.JourneyFinder;
 import kko.traveldiary_api.journey.application.provided.JourneyManager;
 import kko.traveldiary_api.journey.application.required.JourneyRepository;
 import kko.traveldiary_api.journey.domain.Journey;
 import kko.traveldiary_api.journey.domain.Visibility;
-import kko.traveldiary_api.journey.dto.JourneyRegisterDto;
+import kko.traveldiary_api.journey.adaptor.controller.dto.request.JourneyRegisterReqDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -31,35 +32,36 @@ public class JourneyService implements JourneyFinder, JourneyManager {
     }
 
     @Override
-    public Journey register(JourneyRegisterDto registerDto) {
+    public Journey register(JourneyRegisterReqDto registerDto) {
         Journey journey = Journey.builder()
-                .memberId(registerDto.getMemberId())
-                .startDate(registerDto.getStartDate())
-                .endDate(registerDto.getEndDate())
-                .name(registerDto.getName())
+                .memberId(registerDto.memberId())
+                .startDate(registerDto.startDate())
+                .endDate(registerDto.endDate())
+                .name(registerDto.name())
                 .createdAt(LocalDateTime.now())
                 .lastModifiedAt(LocalDateTime.now())
                 .isActive(true)
-                .visibility(Visibility.valueOf(registerDto.getVisibility()))
+                .visibility(Visibility.valueOf(registerDto.visibility()))
                 .build();
         return repository.save(journey);
     }
 
     @Override
-    public Journey modifyDate(Long journeyId, LocalDate startDate, LocalDate endDate) {
-        Journey journey = repository.findByIdWithCityVisit(journeyId).orElseThrow(() ->
+    public Journey modify(JourneyPatchReqDto patchReqDto) {
+        Journey journey = repository.findByIdWithCityVisit(patchReqDto.journeyId()).orElseThrow(() ->
                 new IllegalArgumentException("Invalid JourneyId: Not Found"));
-        journey.changeStartDate(startDate, journey.getCityVisitList());
-        journey.changeEndDate(endDate, journey.getCityVisitList());
-        return repository.save(journey);
-    }
 
-    @Override
-    public void adjustVisibility(Long journeyId, Visibility visibility) {
-        Journey journey = repository.findById(journeyId).orElseThrow(() ->
-                new IllegalArgumentException("Invalid JourneyId: Not Found"));
-        journey.modifyVisibility(visibility);
-        repository.save(journey);
+        if(patchReqDto.startDate() != null && patchReqDto.endDate() != null) {
+            journey.changeStartDate(patchReqDto.startDate(), journey.getCityVisitList());
+            journey.changeEndDate(patchReqDto.endDate(), journey.getCityVisitList());
+        }
+        if(patchReqDto.name() != null) {
+            journey.changeName(patchReqDto.name());
+        }
+        if(patchReqDto.visibility() != null) {
+            journey.modifyVisibility(Visibility.valueOf(patchReqDto.visibility()));
+        }
+        return repository.save(journey);
     }
 
     @Override

@@ -10,6 +10,6 @@ import java.util.Optional;
 public interface JourneyJpaRepository extends JpaRepository<JourneyEntity, Long> {
     List<JourneyEntity> findByMemberId(Long memberId);
 
-    @Query("SELECT j FROM JourneyEntity j JOIN FETCH j.cityVisits WHERE j.id = :journeyId")
+    @Query("SELECT j FROM JourneyEntity j LEFT JOIN FETCH j.cityVisits WHERE j.id = :journeyId")
     Optional<JourneyEntity> findByIdFetchWithCityVisit(@Param("journeyId") Long journeyId);
 }
