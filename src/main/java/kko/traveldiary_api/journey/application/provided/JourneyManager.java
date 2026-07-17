@@ -9,6 +9,6 @@ import java.time.LocalDate;
 
 public interface JourneyManager {
     Journey register(JourneyRegisterReqDto registerDto);
-    Journey modify(JourneyPatchReqDto patchDto);
-    void delete(Long journeyId);
+    Journey modify(Long memberId, JourneyPatchReqDto patchDto);
+    void delete(Long memberId, Long journeyId);
 }

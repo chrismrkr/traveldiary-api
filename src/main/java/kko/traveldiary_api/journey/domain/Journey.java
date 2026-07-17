@@ -1,5 +1,6 @@
 package kko.traveldiary_api.journey.domain;
 
+import kko.traveldiary_api.journey.application.exception.InvalidJourneyDateChangeException;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -71,7 +72,7 @@ public class Journey {
     public void changeStartDate(LocalDate startDate, List<CityVisit> cityVisitList) {
         for(CityVisit cityVisit : cityVisitList) {
             if(cityVisit.getStartDate().isBefore(startDate)) {
-                throw new IllegalArgumentException("Journey 시작일 보다 도시 방문 시작일이 이전일 수 없음");
+                throw new InvalidJourneyDateChangeException("Journey 시작일 보다 도시 방문 시작일이 이전일 수 없음");
             }
         }
         this.startDate = startDate;
@@ -81,7 +82,7 @@ public class Journey {
     public void changeEndDate(LocalDate endDate, List<CityVisit> cityVisitList) {
         for(CityVisit cityVisit : cityVisitList) {
             if(cityVisit.getEndDate().isAfter(endDate)) {
-                throw new IllegalArgumentException("도시 방문 종료일 보다 Journey 종료일이 빠를 수 없음");
+                throw new InvalidJourneyDateChangeException("도시 방문 종료일 보다 Journey 종료일이 빠를 수 없음");
             }
         }
         this.endDate = endDate;
@@ -96,6 +97,10 @@ public class Journey {
         cityVisitList.add(cityVisit);
         cityVisit.linkJourney(this);
         touch();
+    }
+
+    public boolean isOwnedBy(Long memberId) {
+        return this.getMemberId().equals(memberId);
     }
 
     private void touch() {

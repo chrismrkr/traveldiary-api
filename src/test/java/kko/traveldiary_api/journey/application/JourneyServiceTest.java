@@ -3,6 +3,9 @@ package kko.traveldiary_api.journey.application;
 import kko.traveldiary_api.journey.adaptor.controller.dto.request.JourneyPatchReqDto;
 import kko.traveldiary_api.journey.adaptor.infrastructure.CityVisitJpaRepository;
 import kko.traveldiary_api.journey.adaptor.infrastructure.JourneyJpaRepository;
+import kko.traveldiary_api.journey.application.exception.InvalidJourneyDateChangeException;
+import kko.traveldiary_api.journey.application.exception.JourneyAccessDeniedException;
+import kko.traveldiary_api.journey.application.exception.JourneyNotFoundException;
 import kko.traveldiary_api.journey.application.required.CityVisitRepository;
 import kko.traveldiary_api.journey.application.required.JourneyRepository;
 import kko.traveldiary_api.journey.domain.CityVisit;
@@ -82,9 +85,10 @@ class JourneyServiceTest {
     @Test
     @DisplayName("Journey를 Id로 조회할 수 있다")
     void findJourney() {
-        Journey saved = saveJourney(1L, "도쿄 여행");
+        Long memberId = 1L;
+        Journey saved = saveJourney(memberId, "도쿄 여행");
 
-        Journey found = journeyService.findJourney(saved.getId());
+        Journey found = journeyService.findJourney(memberId, saved.getId());
 
         assertThat(found.getId()).isEqualTo(saved.getId());
         assertThat(found.getName()).isEqualTo("도쿄 여행");
@@ -92,16 +96,30 @@ class JourneyServiceTest {
     }
 
     @Test
-    @DisplayName("존재하지 않는 Id로 조회하면 예외가 발생한다")
+    @DisplayName("존재하지 않는 JourneyId로 조회하면 예외가 발생한다")
     void findJourney_notFound() {
-        assertThatThrownBy(() -> journeyService.findJourney(99_999L))
-                .isInstanceOf(IllegalArgumentException.class);
+        Long memberId = 1L;
+        Journey saved = saveJourney(memberId, "도쿄 여행");
+
+        assertThatThrownBy(() -> journeyService.findJourney(memberId, 99_999L))
+                .isInstanceOf(JourneyNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("소유권이 없는 MemberId로 조회하면 예외가 발생한다")
+    void findJourney_InvalidMemberId() {
+        Long memberId = 1L;
+        Journey saved = saveJourney(memberId, "도쿄 여행");
+
+        assertThatThrownBy(() -> journeyService.findJourney(2L, saved.getId()))
+                .isInstanceOf(JourneyAccessDeniedException.class);
     }
 
     @Test
     @DisplayName("Journey를 등록할 수 있다")
     void register() {
-        JourneyRegisterReqDto dto = new JourneyRegisterReqDto(1L, START, END, "도쿄 여행", "PUBLIC");
+        Long memberId = 1L;
+        JourneyRegisterReqDto dto = new JourneyRegisterReqDto(memberId, START, END, "도쿄 여행", "PUBLIC");
 
         Journey result = journeyService.register(dto);
 
@@ -116,7 +134,7 @@ class JourneyServiceTest {
         assertThat(result.getLastModifiedAt()).isNotNull();
 
         // 실제로 영속되었는지 재조회로 확인한다.
-        Journey reloaded = journeyService.findJourney(result.getId());
+        Journey reloaded = journeyService.findJourney(memberId, result.getId());
         assertThat(reloaded.getName()).isEqualTo("도쿄 여행");
     }
 
@@ -132,17 +150,19 @@ class JourneyServiceTest {
     @Test
     @DisplayName("Journey의 시작 및 종료일자를 변경할 수 있다.")
     void modifyJourneyDate() {
-        Journey journey = saveJourney(1L, "도쿄 여행");
+        Long memberId = 1L;
+        Journey journey = saveJourney(memberId, "도쿄 여행");
         addCityVisit(journey, LocalDate.of(2026, 1, 3), LocalDate.of(2026, 1, 7));
 
         Journey result = journeyService.modify(
+                memberId,
                 new JourneyPatchReqDto(
                 journey.getId(), LocalDate.of(2026, 1, 2), LocalDate.of(2026, 1, 9), null, null));
 
         assertThat(result.getStartDate()).isEqualTo(LocalDate.of(2026, 1, 2));
         assertThat(result.getEndDate()).isEqualTo(LocalDate.of(2026, 1, 9));
 
-        Journey reloaded = journeyService.findJourney(journey.getId());
+        Journey reloaded = journeyService.findJourney(memberId, journey.getId());
         assertThat(reloaded.getStartDate()).isEqualTo(LocalDate.of(2026, 1, 2));
         assertThat(reloaded.getEndDate()).isEqualTo(LocalDate.of(2026, 1, 9));
     }
@@ -150,79 +170,104 @@ class JourneyServiceTest {
     @Test
     @DisplayName("Journey 시작일이 도시 방문 시작일 보다 느리게 변경할 수 없다.")
     void modifyJourneyDateFailed() {
-        Journey journey = saveJourney(1L, "도쿄 여행");
+        Long memberId = 1L;
+        Journey journey = saveJourney(memberId, "도쿄 여행");
         addCityVisit(journey, LocalDate.of(2026, 1, 3), LocalDate.of(2026, 1, 7));
 
         // 새 시작일(1/5) 이 도시 방문 시작일(1/3) 보다 늦다 → 거부
         assertThatThrownBy(() -> journeyService.modify(
+                memberId,
                 new JourneyPatchReqDto(journey.getId(), LocalDate.of(2026, 1, 5), END, null, null)
                 ))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(InvalidJourneyDateChangeException.class);
 
         // 거부되었으므로 저장되지 않아 기존 값이 유지된다.
-        Journey reloaded = journeyService.findJourney(journey.getId());
+        Journey reloaded = journeyService.findJourney(memberId, journey.getId());
         assertThat(reloaded.getStartDate()).isEqualTo(START);
     }
 
     @Test
     @DisplayName("Journey 종료일이 도시 방문 종료일 보다 빠르게 변경할 수 없다.")
     void modifyJourneyDateFailed2() {
-        Journey journey = saveJourney(1L, "도쿄 여행");
+        Long memberId = 1L;
+        Journey journey = saveJourney(memberId, "도쿄 여행");
         addCityVisit(journey, LocalDate.of(2026, 1, 3), LocalDate.of(2026, 1, 8));
 
         // 새 종료일(1/7) 이 도시 방문 종료일(1/8) 보다 빠르다 → 거부
         assertThatThrownBy(() -> journeyService.modify(
+                memberId,
                 new JourneyPatchReqDto(
                 journey.getId(), LocalDate.of(2026, 1, 2), LocalDate.of(2026, 1, 7), null, null)
                 ))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(InvalidJourneyDateChangeException.class);
 
         // 거부되었으므로 저장되지 않아 기존 값이 유지된다.
-        Journey reloaded = journeyService.findJourney(journey.getId());
+        Journey reloaded = journeyService.findJourney(memberId, journey.getId());
         assertThat(reloaded.getEndDate()).isEqualTo(END);
     }
 
     @Test
     @DisplayName("Journey의 공개범위(Visibility)를 변경할 수 있다")
     void changeVisibility() {
-        Journey journey = saveJourney(1L, "도쿄 여행"); // PUBLIC 으로 생성
+        Long memberId = 1L;
+        Journey journey = saveJourney(memberId, "도쿄 여행"); // PUBLIC 으로 생성
 
         Journey aPrivate = journeyService.modify(
+                memberId,
                 new JourneyPatchReqDto(
                         journey.getId(), null, null, null, "PRIVATE")
         );
 
-        Journey reloaded = journeyService.findJourney(journey.getId());
+        Journey reloaded = journeyService.findJourney(memberId, journey.getId());
         assertThat(reloaded.getVisibility()).isEqualTo(Visibility.PRIVATE);
     }
 
     @Test
     @DisplayName("Journey의 이름을 변경할 수 있다")
     void modifyName() {
-        Journey journey = saveJourney(1L, "도쿄 여행");
+        Long memberId = 1L;
+        Journey journey = saveJourney(memberId, "도쿄 여행");
 
-        journeyService.modify(new JourneyPatchReqDto(
-                journey.getId(), null, null, "오사카 여행", null));
+        journeyService.modify(
+                memberId,
+                new JourneyPatchReqDto(journey.getId(), null, null, "오사카 여행", null));
 
-        Journey reloaded = journeyService.findJourney(journey.getId());
+        Journey reloaded = journeyService.findJourney(memberId, journey.getId());
         assertThat(reloaded.getName()).isEqualTo("오사카 여행");
     }
 
     @Test
     @DisplayName("존재하지 않는 Journey를 수정하면 예외가 발생한다")
     void modify_notFound() {
+        Long memberId = 1L;
+        Journey journey = saveJourney(memberId, "도쿄 여행");
+
         assertThatThrownBy(() -> journeyService.modify(
+                memberId,
                 new JourneyPatchReqDto(99_999L, START, END, null, null)))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(JourneyNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("소유권이 없는 Member가 Journey를 수정하면 예외가 발생한다")
+    void modify_notOwn() {
+        Long memberId = 1L;
+        Journey journey = saveJourney(memberId, "도쿄 여행");
+
+        assertThatThrownBy(() -> journeyService.modify(
+                2L,
+                new JourneyPatchReqDto(journey.getId(), START, END, null, null)))
+                .isInstanceOf(JourneyAccessDeniedException.class);
     }
 
     @Test
     @DisplayName("Journey를 삭제하면 연관된 CityVisit도 함께 삭제된다")
     void delete() {
-        Journey journey = saveJourney(1L, "도쿄 여행");
+        Long memberId = 1L;
+        Journey journey = saveJourney(memberId, "도쿄 여행");
         addCityVisit(journey, LocalDate.of(2026, 1, 3), LocalDate.of(2026, 1, 7));
 
-        journeyService.delete(journey.getId());
+        journeyService.delete(memberId, journey.getId());
 
         // Journey 가 제거되고, cascade REMOVE 로 자식 CityVisit 도 함께 사라진다(FK 위반 없이 삭제됨).
         assertThat(journeyRepository.findById(journey.getId())).isEmpty();
