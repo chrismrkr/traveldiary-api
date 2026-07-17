@@ -1,5 +1,6 @@
 package kko.traveldiary_api.journey.domain;
 
+import io.swagger.v3.oas.annotations.links.Link;
 import kko.traveldiary_api.journey.application.exception.InvalidJourneyDateChangeException;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -8,9 +9,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -26,10 +25,10 @@ public class Journey {
     private Boolean isActive;
     private Visibility visibility;
 
-    private List<CityVisit> cityVisitList = new ArrayList<>();
+    private List<CityVisit> cityVisits = new LinkedList<>();
 
     @Builder
-    private Journey(Long id, Long memberId, String name, LocalDate startDate, LocalDate endDate, LocalDateTime createdAt, LocalDateTime lastModifiedAt, Boolean isActive, Visibility visibility, List<CityVisit> cityVisitList) {
+    private Journey(Long id, Long memberId, String name, LocalDate startDate, LocalDate endDate, LocalDateTime createdAt, LocalDateTime lastModifiedAt, Boolean isActive, Visibility visibility, List<CityVisit> cityVisits) {
         this.id = id;
         this.memberId = memberId;
         this.name = name;
@@ -39,7 +38,7 @@ public class Journey {
         this.lastModifiedAt = lastModifiedAt;
         this.isActive = isActive;
         this.visibility = visibility;
-        this.cityVisitList = cityVisitList == null ? new ArrayList<>() : cityVisitList;
+        this.cityVisits = cityVisits == null ? new LinkedList<>() : cityVisits;
     }
 
     public static Journey create(Long memberId, String name, LocalDate startDate, LocalDate endDate, Visibility visibility) {
@@ -94,13 +93,19 @@ public class Journey {
     }
 
     public void visit(CityVisit cityVisit) {
-        cityVisitList.add(cityVisit);
+        cityVisits.add(cityVisit);
         cityVisit.linkJourney(this);
         touch();
     }
 
     public boolean isOwnedBy(Long memberId) {
         return this.getMemberId().equals(memberId);
+    }
+
+    public Optional<CityVisit> findCityVisitById(Long cityVisitId) {
+        return this.getCityVisits().stream()
+                .filter(cityVisit -> cityVisit.getId().equals(cityVisitId))
+                .findAny();
     }
 
     private void touch() {

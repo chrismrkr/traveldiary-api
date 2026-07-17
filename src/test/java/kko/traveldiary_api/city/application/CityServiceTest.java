@@ -80,7 +80,7 @@ class CityServiceTest {
     }
 
     @Test
-    @DisplayName("좌표에 해당하는 City가 없으면 CityNotReadyException을 던지고, Publisher→Listener를 거쳐 상세 생성이 호출된다")
+    @DisplayName("좌표에 해당하는 City가 없으면 생성 대기 중인 PENDING 상태 City를 응답하고, Publisher→Listener를 거쳐 상세 생성이 호출된다")
     void find_whenCityAbsent_triggersRegistrationAndEventChain() {
         String name = "busan";
         String placeId = "place-busan";
@@ -88,9 +88,11 @@ class CityServiceTest {
         given(cityDescriptionGenerator.generate(any())).willReturn(new CityDescription("부산에 대한 설명", "", "", ""));
         given(cityImageGenerator.generate(any())).willReturn(new CityImage("id-123", "abcabc".getBytes(StandardCharsets.UTF_8)));
 
-        // 좌표 조회 실패 → 비동기 등록을 트리거하고 "아직 준비되지 않음"을 알린다.
-        assertThatThrownBy(() -> cityFinder.findOrRegister(name, placeId, coordinate))
-                .isInstanceOf(CityNotReadyException.class);
+        // 좌표 조회 실패 → 비동기 등록을 트리거하고 PENDING 상태 City를 반환한다.
+        City orRegister = cityFinder.findOrRegister(name, placeId, coordinate);
+        Assertions.assertTrue(orRegister.getId() > 0);
+        Assertions.assertEquals(orRegister.getStatus(), City.Status.PENDING);
+
 
         // register() 가 PENDING City 를 먼저 저장했어야 한다. (이 시점엔 description 이 아직 비어 있다)
         Optional<City> city = cityRepository.findByCoordinate(coordinate);

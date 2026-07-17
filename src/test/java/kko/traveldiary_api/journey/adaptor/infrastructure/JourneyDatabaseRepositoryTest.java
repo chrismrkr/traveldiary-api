@@ -120,11 +120,11 @@ record JourneyDatabaseRepositoryTest(JourneyDatabaseRepository repository, TestE
         Optional<Journey> found = repository.findByIdWithCityVisit(journey.getId());
 
         assertThat(found).isPresent();
-        assertThat(found.get().getCityVisitList()).hasSize(3)
+        assertThat(found.get().getCityVisits()).hasSize(3)
                 .extracting(CityVisit::getCityId)
                 .containsExactlyInAnyOrder(100L, 101L, 102L);
         // 자식 -> 부모 역참조는 동일한 journey id 를 가리킨다.
-        assertThat(found.get().getCityVisitList())
+        assertThat(found.get().getCityVisits())
                 .allSatisfy(v -> assertThat(v.getJourney().getId()).isEqualTo(journey.getId()));
     }
 

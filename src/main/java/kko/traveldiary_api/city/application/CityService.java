@@ -19,10 +19,7 @@ public class CityService implements CityFinder {
     @Override
     public City findOrRegister(String name, String placeId, Coordinate coordinate) {
         return repository.findByCoordinate(coordinate)
-                .orElseThrow(() -> {
-                    City city = cityRegistration.register(name, placeId, coordinate);
-                    return new CityNotReadyException(city);
-                });
+                .orElseGet(() -> cityRegistration.register(name, placeId, coordinate));
     }
 
     @Override

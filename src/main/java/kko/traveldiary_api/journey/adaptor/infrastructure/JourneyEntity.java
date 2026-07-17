@@ -21,9 +21,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  * 도메인 {@link Journey} 의 영속성 엔티티.
@@ -65,8 +63,8 @@ public class JourneyEntity {
     @Column(nullable = false)
     private Visibility visibility;
 
-    @OneToMany(mappedBy = "journey", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
-    private List<CityVisitEntity> cityVisits = new ArrayList<>();
+    @OneToMany(mappedBy = "journey", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<CityVisitEntity> cityVisits = new LinkedList<>();
 
     @Builder
     private JourneyEntity(Long id, Long memberId, String name, LocalDate startDate, LocalDate endDate,
@@ -80,7 +78,7 @@ public class JourneyEntity {
         this.lastModifiedAt = lastModifiedAt;
         this.isActive = isActive;
         this.visibility = visibility;
-        this.cityVisits = cityVisits == null ? new ArrayList<>() : cityVisits;
+        this.cityVisits = cityVisits == null ? new LinkedList<>() : cityVisits;
     }
 
     public static JourneyEntity from(Journey journey) {
@@ -123,7 +121,7 @@ public class JourneyEntity {
                 .lastModifiedAt(lastModifiedAt)
                 .isActive(isActive)
                 .visibility(visibility)
-                .cityVisitList(cityVisits)
+                .cityVisits(cityVisits)
                 .build();
         this.cityVisits.forEach(
                 cityVisit -> cityVisits.add(cityVisit.toDomain())

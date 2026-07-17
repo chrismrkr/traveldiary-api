@@ -14,6 +14,7 @@ public class CityVisit {
     private Long id;
     private Journey journey;
     private Long cityId;
+    private int visitOrder;
     private LocalDate startDate;
     private LocalDate endDate;
 

@@ -53,8 +53,8 @@ public class JourneyService implements JourneyFinder, JourneyManager {
         Journey journey = findAndValidateOwner(memberId, patchReqDto.journeyId(), true);
 
         if(patchReqDto.startDate() != null && patchReqDto.endDate() != null) {
-            journey.changeStartDate(patchReqDto.startDate(), journey.getCityVisitList());
-            journey.changeEndDate(patchReqDto.endDate(), journey.getCityVisitList());
+            journey.changeStartDate(patchReqDto.startDate(), journey.getCityVisits());
+            journey.changeEndDate(patchReqDto.endDate(), journey.getCityVisits());
         }
         if(patchReqDto.name() != null) {
             journey.changeName(patchReqDto.name());
@@ -79,5 +79,4 @@ public class JourneyService implements JourneyFinder, JourneyManager {
         }
         return journey;
     }
-
 }

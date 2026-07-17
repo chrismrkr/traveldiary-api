@@ -40,7 +40,7 @@ class JourneyEntityTest {
         Assertions.assertEquals(domain.getName(), entity.getName());
         Assertions.assertEquals(domain.getIsActive(), entity.getIsActive());
         Assertions.assertEquals(domain.getVisibility(), entity.getVisibility());
-        Assertions.assertEquals(domain.getCityVisitList().size(), 0);
+        Assertions.assertEquals(domain.getCityVisits().size(), 0);
     }
 
     @Test
@@ -72,7 +72,7 @@ class JourneyEntityTest {
         Assertions.assertEquals(domain.getName(), entity.getName());
         Assertions.assertEquals(domain.getIsActive(), entity.getIsActive());
         Assertions.assertEquals(domain.getVisibility(), entity.getVisibility());
-        Assertions.assertEquals(domain.getCityVisitList().size(), 3);
+        Assertions.assertEquals(domain.getCityVisits().size(), 3);
     }
 
     @Test
@@ -96,7 +96,7 @@ class JourneyEntityTest {
         Assertions.assertEquals(journey.getId(), entity.getId());
         Assertions.assertEquals(journey.getMemberId(), entity.getMemberId());
         Assertions.assertEquals(journey.getName(), entity.getName());
-        Assertions.assertEquals(journey.getCityVisitList().size(), 3);
+        Assertions.assertEquals(journey.getCityVisits().size(), 3);
         Assertions.assertEquals(entity.getCityVisits().size(), 0);
     }
 }
