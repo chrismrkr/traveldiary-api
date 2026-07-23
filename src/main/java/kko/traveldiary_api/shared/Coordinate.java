@@ -17,4 +17,9 @@ public final class Coordinate {
         this.latitude = BigDecimal.valueOf(latitude).setScale(6, RoundingMode.HALF_UP);
         this.longitude = BigDecimal.valueOf(longitude).setScale(6, RoundingMode.HALF_UP);
     }
+
+    public Coordinate(BigDecimal latitude, BigDecimal longitude) {
+        this.latitude = latitude;
+        this.longitude = longitude;
+    }
 }

@@ -10,7 +10,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import kko.traveldiary_api.journey.domain.CityVisit;
-import kko.traveldiary_api.journey.domain.Journey;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -55,7 +54,7 @@ public class CityVisitEntity {
     public static CityVisitEntity from(CityVisit cityVisit) {
         return new CityVisitEntity(
                 cityVisit.getId(),
-                JourneyEntity.from(cityVisit.getJourney()),
+                JourneyEntity.reference(cityVisit.getJourneyId()),
                 cityVisit.getCityId(),
                 cityVisit.getStartDate(),
                 cityVisit.getEndDate()
@@ -63,20 +62,13 @@ public class CityVisitEntity {
     }
 
     /**
-     * 엔티티 -> 도메인 변환. 소속 Journey 는 자식 컬렉션 없이 얕게 복원한다.
-     * (Journey 를 재구성하지 않으므로 Journey -> CityVisit -> Journey 순환이 발생하지 않는다.)
+     * 엔티티 -> 도메인 변환. 부모 Journey 는 id 로만 참조한다.
+     * (lazy 프록시라도 getId() 는 초기화를 유발하지 않아 트랜잭션 밖에서도 안전하다.)
      */
     CityVisit toDomain() {
         return CityVisit.builder()
                 .id(id)
-                .journey(
-                        Journey.builder()
-                                .id(journey.getId()).memberId(journey.getMemberId()).name(journey.getName())
-                                .createdAt(journey.getCreatedAt()).lastModifiedAt(journey.getLastModifiedAt())
-                                .startDate(journey.getStartDate()).endDate(journey.getEndDate())
-                                .isActive(journey.getIsActive()).visibility(journey.getVisibility())
-                                .build()
-                )
+                .journeyId(journey.getId())
                 .cityId(cityId)
                 .startDate(startDate)
                 .endDate(endDate)

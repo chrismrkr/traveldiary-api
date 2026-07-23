@@ -92,7 +92,7 @@ class CityVisitServiceTest {
         assertThat(result.getCityId()).isEqualTo(100L); // CityQueryPort 가 해석한 cityId
         assertThat(result.getStartDate()).isEqualTo(LocalDate.of(2026, 1, 3));
         assertThat(result.getEndDate()).isEqualTo(LocalDate.of(2026, 1, 7));
-        assertThat(result.getJourney().getId()).isEqualTo(journey.getId());
+        assertThat(result.getJourneyId()).isEqualTo(journey.getId());
 
         // 실제 영속 확인
         List<CityVisit> cityVisits = journeyRepository.findByIdWithCityVisit(journey.getId()).orElseThrow().getCityVisits();

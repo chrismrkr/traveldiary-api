@@ -59,7 +59,7 @@ class CityVisitEntityTest {
         Assertions.assertEquals(cityVisit.getCityId(), cityVisitEntity.getCityId());
         Assertions.assertEquals(cityVisit.getStartDate(), cityVisitEntity.getStartDate());
         Assertions.assertEquals(cityVisit.getEndDate(), cityVisitEntity.getEndDate());
-        Assertions.assertEquals(cityVisit.getJourney().getId(), cityVisitEntity.getJourney().getId());
+        Assertions.assertEquals(cityVisit.getJourneyId(), cityVisitEntity.getJourney().getId());
     }
 
 }

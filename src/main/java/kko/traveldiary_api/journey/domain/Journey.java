@@ -94,7 +94,7 @@ public class Journey {
 
     public void visit(CityVisit cityVisit) {
         cityVisits.add(cityVisit);
-        cityVisit.linkJourney(this);
+        cityVisit.linkJourney(this.id);
         touch();
     }
 

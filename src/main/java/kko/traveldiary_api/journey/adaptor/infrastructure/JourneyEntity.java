@@ -81,6 +81,16 @@ public class JourneyEntity {
         this.cityVisits = cityVisits == null ? new LinkedList<>() : cityVisits;
     }
 
+    /**
+     * id 만 채운 참조용 엔티티. 자식({@link CityVisitEntity})의 FK(journey_id) 설정 용도이며
+     * 영속화 대상이 아니다.
+     */
+    static JourneyEntity reference(Long id) {
+        JourneyEntity entity = new JourneyEntity();
+        entity.id = id;
+        return entity;
+    }
+
     public static JourneyEntity from(Journey journey) {
         return JourneyEntity.builder()
                 .id(journey.getId())

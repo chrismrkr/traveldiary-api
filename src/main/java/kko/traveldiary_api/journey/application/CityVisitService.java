@@ -25,7 +25,6 @@ public class CityVisitService implements CityVisitManager {
     private final CityQueryPort cityQueryPort;
 
     @Override
-    @Transactional
     public CityVisit visit(Long memberId, Long journeyId, String cityName, String cityId, Coordinate coordinate,
                            LocalDate startDate, LocalDate endDate) {
         Journey journey = findJourneyAndValidateOwner(memberId, journeyId, false);
@@ -33,23 +32,22 @@ public class CityVisitService implements CityVisitManager {
         CityQueryPort.CityInfo cityInfo = cityQueryPort.search(cityName, cityId, coordinate);
 
         CityVisit cityVisit = CityVisit.builder()
-                .journey(journey).cityId(cityInfo.cityId())
+                .journeyId(journey.getId()).cityId(cityInfo.cityId())
                 .startDate(startDate).endDate(endDate)
                 .build();
-        cityVisit.validateVisitedDate(startDate, endDate);
+        cityVisit.validateVisitedDate(endDate, journey.getEndDate());
 
         return cityVisitRepository.save(cityVisit);
     }
 
     @Override
-    @Transactional
     public CityVisit changeDate(Long memberId, Long journeyId, Long cityVisitId, LocalDate startDate, LocalDate endDate) {
         Journey journey = findJourneyAndValidateOwner(memberId, journeyId, true);
 
         CityVisit cityVisit = journey.findCityVisitById(cityVisitId)
                 .orElseThrow(() -> new CityVisitNotFoundException(cityVisitId));
-        cityVisit.changeStartDate(startDate);
-        cityVisit.changeEndDate(endDate);
+        cityVisit.changeStartDate(startDate, journey.getStartDate());
+        cityVisit.changeEndDate(endDate, journey.getEndDate());
         return cityVisitRepository.save(cityVisit);
     }
 

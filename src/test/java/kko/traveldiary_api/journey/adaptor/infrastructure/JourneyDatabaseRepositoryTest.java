@@ -101,7 +101,7 @@ record JourneyDatabaseRepositoryTest(JourneyDatabaseRepository repository, TestE
 
         assertThat(saved.getId()).isNotNull();
         assertThat(saved.getCityId()).isEqualTo(100L);
-        assertThat(saved.getJourney().getId()).isEqualTo(journey.getId());
+        assertThat(saved.getJourneyId()).isEqualTo(journey.getId());
     }
 
     @Test
@@ -125,7 +125,7 @@ record JourneyDatabaseRepositoryTest(JourneyDatabaseRepository repository, TestE
                 .containsExactlyInAnyOrder(100L, 101L, 102L);
         // 자식 -> 부모 역참조는 동일한 journey id 를 가리킨다.
         assertThat(found.get().getCityVisits())
-                .allSatisfy(v -> assertThat(v.getJourney().getId()).isEqualTo(journey.getId()));
+                .allSatisfy(v -> assertThat(v.getJourneyId()).isEqualTo(journey.getId()));
     }
 
     @Test
@@ -144,7 +144,7 @@ record JourneyDatabaseRepositoryTest(JourneyDatabaseRepository repository, TestE
 
         // then
         Assertions.assertTrue(found.isPresent());
-        Assertions.assertEquals(found.get().getJourney().getId(), journey.getId());
+        Assertions.assertEquals(found.get().getJourneyId(), journey.getId());
         Assertions.assertEquals(found.get().getId(), cityVisit.getId());
         Assertions.assertEquals(found.get().getCityId(), cityVisit.getCityId());
 
