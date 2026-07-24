@@ -16,7 +16,7 @@ public class CityVisitController {
     private final CityVisitManager cityVisitManager;
 
     // 여행 중 도시 방문 이력 등록 요청
-    public ResponseEntity<Void> handleRegistering(@AccessMemberId Long memberId, @RequestBody CityVisitCreateReqDto reqDto) {
+    public ResponseEntity<Void> handleCityVisitRegister(@AccessMemberId Long memberId, @RequestBody CityVisitCreateReqDto reqDto) {
         CityVisit visited = cityVisitManager.visit(memberId, reqDto.journeyId(), reqDto.cityName(), reqDto.cityId(),
                 new Coordinate(reqDto.latitude(), reqDto.longitude()),
                 reqDto.startDate(), reqDto.endDate());

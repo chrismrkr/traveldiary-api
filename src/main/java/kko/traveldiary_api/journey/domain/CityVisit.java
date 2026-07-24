@@ -20,10 +20,11 @@ public class CityVisit {
     private LocalDate endDate;
 
     @Builder
-    private CityVisit(Long id, Long journeyId, Long cityId, LocalDate startDate, LocalDate endDate) {
+    private CityVisit(Long id, Long journeyId, Long cityId, int visitOrder, LocalDate startDate, LocalDate endDate) {
         this.id = id;
         this.journeyId = journeyId;
         this.cityId = cityId;
+        this.visitOrder = visitOrder;
         this.startDate = startDate;
         this.endDate = endDate;
     }

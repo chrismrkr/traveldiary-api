@@ -58,11 +58,6 @@ public class Journey {
         touch();
     }
 
-    public void modifyName(String name) {
-        this.name = name;
-        touch();
-    }
-
     public void modifyVisibility(Visibility visibility) {
         this.visibility = visibility;
         touch();
@@ -90,6 +85,7 @@ public class Journey {
 
     public void changeName(String name) {
         this.name = name;
+        touch();
     }
 
     public void visit(CityVisit cityVisit) {
