@@ -27,7 +27,7 @@ class JourneyEntityTest {
                 .visibility(Visibility.PUBLIC)
                 .build();
         for(long idx=0; idx<3; idx++) {
-            CityVisitEntity cityVisitEntity = new CityVisitEntity(idx, entity, 1L, LocalDate.now(), LocalDate.now());
+            CityVisitEntity cityVisitEntity = new CityVisitEntity(idx, entity, 1L, (int) idx, LocalDate.now(), LocalDate.now());
             entity.getCityVisits().add(cityVisitEntity);
         }
 
@@ -59,7 +59,7 @@ class JourneyEntityTest {
                 .visibility(Visibility.PUBLIC)
                 .build();
         for(long idx=0; idx<3; idx++) {
-            CityVisitEntity cityVisitEntity = new CityVisitEntity(idx, entity, 1L, LocalDate.now(), LocalDate.now());
+            CityVisitEntity cityVisitEntity = new CityVisitEntity(idx, entity, 1L, (int) idx, LocalDate.now(), LocalDate.now());
             entity.getCityVisits().add(cityVisitEntity);
         }
 

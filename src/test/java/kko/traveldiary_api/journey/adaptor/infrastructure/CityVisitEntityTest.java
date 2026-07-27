@@ -29,7 +29,7 @@ class CityVisitEntityTest {
                 .isActive(true)
                 .visibility(Visibility.PUBLIC)
                 .build();
-        CityVisitEntity cityVisitEntity = new CityVisitEntity(0L, entity, 1L, LocalDate.now(), LocalDate.now());
+        CityVisitEntity cityVisitEntity = new CityVisitEntity(0L, entity, 1L, 0, LocalDate.now(), LocalDate.now());
         entity.getCityVisits().add(cityVisitEntity);
 
         // when

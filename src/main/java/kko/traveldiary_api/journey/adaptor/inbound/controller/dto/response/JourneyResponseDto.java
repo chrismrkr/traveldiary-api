@@ -1,6 +1,5 @@
-package kko.traveldiary_api.journey.adaptor.controller.dto.response;
+package kko.traveldiary_api.journey.adaptor.inbound.controller.dto.response;
 
-import kko.traveldiary_api.journey.domain.CityVisit;
 import kko.traveldiary_api.journey.domain.Journey;
 import kko.traveldiary_api.journey.domain.Visibility;
 import lombok.AccessLevel;

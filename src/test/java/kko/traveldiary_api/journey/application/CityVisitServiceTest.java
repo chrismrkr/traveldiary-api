@@ -1,11 +1,15 @@
 package kko.traveldiary_api.journey.application;
 
+import kko.traveldiary_api.journey.adaptor.inbound.controller.dto.request.CityVisitModifyReqDto;
+import kko.traveldiary_api.journey.adaptor.inbound.controller.dto.request.CityVisitOrderRealignReqDto;
 import kko.traveldiary_api.journey.adaptor.infrastructure.CityVisitJpaRepository;
 import kko.traveldiary_api.journey.adaptor.infrastructure.JourneyJpaRepository;
 import kko.traveldiary_api.journey.application.exception.CityVisitNotFoundException;
 import kko.traveldiary_api.journey.application.exception.JourneyAccessDeniedException;
+import kko.traveldiary_api.journey.application.exception.InvalidCityVisitOrderException;
 import kko.traveldiary_api.journey.application.exception.JourneyNotFoundException;
 import kko.traveldiary_api.journey.application.required.CityQueryPort;
+import kko.traveldiary_api.journey.domain.CityVisitOrder;
 import kko.traveldiary_api.journey.application.required.CityVisitRepository;
 import kko.traveldiary_api.journey.application.required.JourneyRepository;
 import kko.traveldiary_api.journey.domain.CityVisit;
@@ -20,7 +24,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-import java.nio.file.AccessDeniedException;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -142,17 +145,38 @@ class CityVisitServiceTest {
                 .isInstanceOf(JourneyAccessDeniedException.class);
     }
 
+    @Test
+    @DisplayName("visit 을 반복하면 visitOrder 가 0,1,2 로 맨 뒤에 append 된다")
+    void visit_appendsInOrder() {
+        Long memberId = 1L;
+        Journey journey = saveJourney(memberId);
+        given(cityQueryPort.search(any(), any(), any()))
+                .willReturn(new CityQueryPort.CityInfo(100L));
+
+        CityVisit first = cityVisitService.visit(memberId, journey.getId(), "A", "a", COORDINATE,
+                LocalDate.of(2026, 1, 3), LocalDate.of(2026, 1, 4));
+        CityVisit second = cityVisitService.visit(memberId, journey.getId(), "B", "b", COORDINATE,
+                LocalDate.of(2026, 1, 5), LocalDate.of(2026, 1, 6));
+        CityVisit third = cityVisitService.visit(memberId, journey.getId(), "C", "c", COORDINATE,
+                LocalDate.of(2026, 1, 7), LocalDate.of(2026, 1, 8));
+
+        assertThat(reloadVisitOrder(first.getId())).isEqualTo(0);
+        assertThat(reloadVisitOrder(second.getId())).isEqualTo(1);
+        assertThat(reloadVisitOrder(third.getId())).isEqualTo(2);
+    }
+
 
 
     @Test
     @DisplayName("도시 방문 기간을 변경할 수 있다")
-    void changeDate() {
+    void modify() {
         Long memberId = 1L;
         Journey journey = saveJourney(memberId);
         CityVisit cityVisit = saveCityVisit(journey, LocalDate.of(2026, 1, 3), LocalDate.of(2026, 1, 7));
 
-        CityVisit result = cityVisitService.changeDate(memberId, journey.getId(),
-                cityVisit.getId(), LocalDate.of(2026, 1, 4), LocalDate.of(2026, 1, 6));
+        CityVisit result = cityVisitService.modify(memberId,
+                new CityVisitModifyReqDto(journey.getId(), cityVisit.getId(),
+                        LocalDate.of(2026, 1, 4), LocalDate.of(2026, 1, 6)));
 
         assertThat(result.getStartDate()).isEqualTo(LocalDate.of(2026, 1, 4));
         assertThat(result.getEndDate()).isEqualTo(LocalDate.of(2026, 1, 6));
@@ -164,14 +188,15 @@ class CityVisitServiceTest {
 
     @Test
     @DisplayName("방문 시작일이 여행 시작일보다 이르면 변경할 수 없다")
-    void changeDate_startBeforeJourneyStart() {
+    void modify_startBeforeJourneyStart() {
         Long memberId = 1L;
         Journey journey = saveJourney(memberId);
         CityVisit cityVisit = saveCityVisit(journey, LocalDate.of(2026, 1, 3), LocalDate.of(2026, 1, 7));
 
         // 여행 시작일(1/1) 이전인 2025-12-31 로 변경 시도 → 거부
-        assertThatThrownBy(() -> cityVisitService.changeDate(memberId, journey.getId(),
-                cityVisit.getId(), LocalDate.of(2025, 12, 31), LocalDate.of(2026, 1, 7)))
+        assertThatThrownBy(() -> cityVisitService.modify(memberId,
+                new CityVisitModifyReqDto(journey.getId(), cityVisit.getId(),
+                        LocalDate.of(2025, 12, 31), LocalDate.of(2026, 1, 7))))
                 .isInstanceOf(IllegalArgumentException.class);
 
         CityVisit reloaded = cityVisitRepository.findCityVisitByIdWithJourney(cityVisit.getId()).orElseThrow();
@@ -180,14 +205,15 @@ class CityVisitServiceTest {
 
     @Test
     @DisplayName("방문 종료일이 여행 종료일보다 늦으면 변경할 수 없다")
-    void changeDate_endAfterJourneyEnd() {
+    void modify_endAfterJourneyEnd() {
         Long memberId = 1L;
         Journey journey = saveJourney(memberId);
         CityVisit cityVisit = saveCityVisit(journey, LocalDate.of(2026, 1, 3), LocalDate.of(2026, 1, 7));
 
         // 여행 종료일(1/10) 이후인 1/11 로 변경 시도 → 거부
-        assertThatThrownBy(() -> cityVisitService.changeDate(memberId, journey.getId(),
-                cityVisit.getId(), LocalDate.of(2026, 1, 4), LocalDate.of(2026, 1, 11)))
+        assertThatThrownBy(() -> cityVisitService.modify(memberId,
+                new CityVisitModifyReqDto(journey.getId(), cityVisit.getId(),
+                        LocalDate.of(2026, 1, 4), LocalDate.of(2026, 1, 11))))
                 .isInstanceOf(IllegalArgumentException.class);
 
         CityVisit reloaded = cityVisitRepository.findCityVisitByIdWithJourney(cityVisit.getId()).orElseThrow();
@@ -196,25 +222,27 @@ class CityVisitServiceTest {
 
     @Test
     @DisplayName("잘못된 Member가 CityVisit의 기간을 변경하면 예외가 발생한다")
-    void changeDate_accessDenied() {
+    void modify_accessDenied() {
         Long memberId = 1L;
         Journey journey = saveJourney(memberId);
         CityVisit cityVisit = saveCityVisit(journey, LocalDate.of(2026, 1, 3), LocalDate.of(2026, 1, 7));
 
-        assertThatThrownBy(() -> cityVisitService.changeDate(10000L, journey.getId(),
-                cityVisit.getId(), LocalDate.of(2026, 1, 4), LocalDate.of(2026, 1, 6)))
+        assertThatThrownBy(() -> cityVisitService.modify(10000L,
+                new CityVisitModifyReqDto(journey.getId(), cityVisit.getId(),
+                        LocalDate.of(2026, 1, 4), LocalDate.of(2026, 1, 6))))
                 .isInstanceOf(JourneyAccessDeniedException.class);
     }
 
     @Test
     @DisplayName("존재하지 않는 CityVisit의 기간을 변경하면 예외가 발생한다")
-    void changeDate_notFound() {
+    void modify_notFound() {
         Long memberId = 1L;
         Journey journey = saveJourney(memberId);
         CityVisit cityVisit = saveCityVisit(journey, LocalDate.of(2026, 1, 3), LocalDate.of(2026, 1, 7));
 
-        assertThatThrownBy(() -> cityVisitService.changeDate(memberId, journey.getId(),
-                99_999L, LocalDate.of(2026, 1, 4), LocalDate.of(2026, 1, 6)))
+        assertThatThrownBy(() -> cityVisitService.modify(memberId,
+                new CityVisitModifyReqDto(journey.getId(), 99_999L,
+                        LocalDate.of(2026, 1, 4), LocalDate.of(2026, 1, 6))))
                 .isInstanceOf(CityVisitNotFoundException.class);
     }
 
@@ -230,5 +258,73 @@ class CityVisitServiceTest {
         assertThat(cityVisitRepository.findCityVisitByIdWithJourney(cityVisit.getId())).isEmpty();
         // 부모 Journey 는 남아 있어야 한다.
         assertThat(journeyRepository.findById(journey.getId())).isPresent();
+    }
+
+    private int reloadVisitOrder(Long cityVisitId) {
+        return cityVisitRepository.findCityVisitByIdWithJourney(cityVisitId).orElseThrow().getVisitOrder();
+    }
+
+    @Test
+    @DisplayName("도시 방문 순서를 재정렬하면 0..n-1 로 정규화되어 저장된다")
+    void realignVisitOrder() {
+        Long memberId = 1L;
+        Journey journey = saveJourney(memberId);
+        CityVisit a = saveCityVisit(journey, LocalDate.of(2026, 1, 3), LocalDate.of(2026, 1, 4));
+        CityVisit b = saveCityVisit(journey, LocalDate.of(2026, 1, 5), LocalDate.of(2026, 1, 6));
+        CityVisit c = saveCityVisit(journey, LocalDate.of(2026, 1, 7), LocalDate.of(2026, 1, 8));
+
+        // 요청 order 값은 간격이 있어도 됨: b=0, c=5, a=10 → 정규화 후 b=0, c=1, a=2
+        cityVisitService.realignVisitOrder(memberId, new CityVisitOrderRealignReqDto(
+                journey.getId(),
+                List.of(new CityVisitOrder(a.getId(), 10),
+                        new CityVisitOrder(b.getId(), 0),
+                        new CityVisitOrder(c.getId(), 5))));
+
+        assertThat(reloadVisitOrder(b.getId())).isEqualTo(0);
+        assertThat(reloadVisitOrder(c.getId())).isEqualTo(1);
+        assertThat(reloadVisitOrder(a.getId())).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("요청한 방문 목록이 여행의 방문과 일치하지 않으면 예외가 발생한다")
+    void realignVisitOrder_idMismatch() {
+        Long memberId = 1L;
+        Journey journey = saveJourney(memberId);
+        CityVisit a = saveCityVisit(journey, LocalDate.of(2026, 1, 3), LocalDate.of(2026, 1, 4));
+        saveCityVisit(journey, LocalDate.of(2026, 1, 5), LocalDate.of(2026, 1, 6)); // b: 요청에서 빠뜨림
+
+        assertThatThrownBy(() -> cityVisitService.realignVisitOrder(memberId,
+                new CityVisitOrderRealignReqDto(journey.getId(),
+                        List.of(new CityVisitOrder(a.getId(), 0),
+                                new CityVisitOrder(99_999L, 1)))))
+                .isInstanceOf(InvalidCityVisitOrderException.class);
+    }
+
+    @Test
+    @DisplayName("order 값이 중복되면 예외가 발생한다")
+    void realignVisitOrder_duplicateOrder() {
+        Long memberId = 1L;
+        Journey journey = saveJourney(memberId);
+        CityVisit a = saveCityVisit(journey, LocalDate.of(2026, 1, 3), LocalDate.of(2026, 1, 4));
+        CityVisit b = saveCityVisit(journey, LocalDate.of(2026, 1, 5), LocalDate.of(2026, 1, 6));
+
+        assertThatThrownBy(() -> cityVisitService.realignVisitOrder(memberId,
+                new CityVisitOrderRealignReqDto(journey.getId(),
+                        List.of(new CityVisitOrder(a.getId(), 0),
+                                new CityVisitOrder(b.getId(), 0)))))
+                .isInstanceOf(InvalidCityVisitOrderException.class);
+    }
+
+    @Test
+    @DisplayName("잘못된 Member가 순서를 재정렬하면 예외가 발생한다")
+    void realignVisitOrder_accessDenied() {
+        Long memberId = 1L;
+        Journey journey = saveJourney(memberId);
+        CityVisit a = saveCityVisit(journey, LocalDate.of(2026, 1, 3), LocalDate.of(2026, 1, 4));
+
+        assertThatThrownBy(() -> cityVisitService.realignVisitOrder(9999L,
+                new CityVisitOrderRealignReqDto(journey.getId(),
+                        List.of(new CityVisitOrder(a.getId(), 0)))))
+                .isInstanceOf(JourneyAccessDeniedException.class);
     }
 }

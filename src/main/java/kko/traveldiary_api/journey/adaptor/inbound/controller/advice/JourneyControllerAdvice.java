@@ -1,8 +1,8 @@
-package kko.traveldiary_api.journey.adaptor.controller.advice;
+package kko.traveldiary_api.journey.adaptor.inbound.controller.advice;
 
-import kko.traveldiary_api.journey.adaptor.controller.JourneyController;
-import kko.traveldiary_api.journey.adaptor.controller.dto.response.CommonResponse;
-import kko.traveldiary_api.journey.adaptor.controller.dto.response.ResponseStatuses;
+import kko.traveldiary_api.journey.adaptor.inbound.controller.JourneyController;
+import kko.traveldiary_api.journey.adaptor.inbound.controller.dto.response.CommonResponse;
+import kko.traveldiary_api.journey.adaptor.inbound.controller.dto.response.ResponseStatuses;
 import kko.traveldiary_api.journey.application.exception.InvalidJourneyDateChangeException;
 import kko.traveldiary_api.journey.application.exception.JourneyAccessDeniedException;
 import kko.traveldiary_api.journey.application.exception.JourneyNotFoundException;
@@ -37,10 +37,8 @@ public class JourneyControllerAdvice {
     }
 
     @ExceptionHandler(exception = Exception.class)
-    @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
-    public ResponseEntity<Object> handleUnknownError(JourneyAccessDeniedException exception) {
-        exception.fillInStackTrace();
-        log.error("[Unknown Error] {}", exception.getMessage());
+    public ResponseEntity<CommonResponse<Object>> handleUnknownError(Exception exception) {
+        log.error("[Unknown Error]", exception);
         return ResponseEntity.internalServerError()
                 .body(new CommonResponse<>(ResponseStatuses.UNKNOWN_ERROR, ""));
     }

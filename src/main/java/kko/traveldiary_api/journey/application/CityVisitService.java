@@ -1,5 +1,7 @@
 package kko.traveldiary_api.journey.application;
 
+import kko.traveldiary_api.journey.adaptor.inbound.controller.dto.request.CityVisitModifyReqDto;
+import kko.traveldiary_api.journey.adaptor.inbound.controller.dto.request.CityVisitOrderRealignReqDto;
 import kko.traveldiary_api.journey.application.exception.CityVisitNotFoundException;
 import kko.traveldiary_api.journey.application.exception.JourneyAccessDeniedException;
 import kko.traveldiary_api.journey.application.exception.JourneyNotFoundException;
@@ -15,7 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -27,7 +28,7 @@ public class CityVisitService implements CityVisitManager {
     @Override
     public CityVisit visit(Long memberId, Long journeyId, String cityName, String cityId, Coordinate coordinate,
                            LocalDate startDate, LocalDate endDate) {
-        Journey journey = findJourneyAndValidateOwner(memberId, journeyId, false);
+        Journey journey = findJourneyAndValidateOwner(memberId, journeyId, true);
 
         CityQueryPort.CityInfo cityInfo = cityQueryPort.search(cityName, cityId, coordinate);
 
@@ -36,24 +37,36 @@ public class CityVisitService implements CityVisitManager {
                 .startDate(startDate).endDate(endDate)
                 .build();
         cityVisit.validateVisitedDate(endDate, journey.getEndDate());
+        journey.visit(cityVisit);
 
         return cityVisitRepository.save(cityVisit);
     }
 
     @Override
-    public CityVisit changeDate(Long memberId, Long journeyId, Long cityVisitId, LocalDate startDate, LocalDate endDate) {
-        Journey journey = findJourneyAndValidateOwner(memberId, journeyId, true);
+    public CityVisit modify(Long memberId, CityVisitModifyReqDto reqDto) {
+        Journey journey = findJourneyAndValidateOwner(memberId, reqDto.journeyId(), true);
+        CityVisit cityVisit = journey.findCityVisitById(reqDto.cityVisitId())
+                .orElseThrow(() -> new CityVisitNotFoundException(reqDto.cityVisitId()));
 
-        CityVisit cityVisit = journey.findCityVisitById(cityVisitId)
-                .orElseThrow(() -> new CityVisitNotFoundException(cityVisitId));
-        cityVisit.changeStartDate(startDate, journey.getStartDate());
-        cityVisit.changeEndDate(endDate, journey.getEndDate());
+        if(reqDto.startDate() != null && reqDto.endDate() != null) {
+            cityVisit.changeStartDate(reqDto.startDate(), journey.getStartDate());
+            cityVisit.changeEndDate(reqDto.endDate(), journey.getEndDate());
+        }
+
         return cityVisitRepository.save(cityVisit);
+    }
+
+    @Override
+    @Transactional
+    public void realignVisitOrder(Long memberId, CityVisitOrderRealignReqDto realignReqDto) {
+        Journey journey = findJourneyAndValidateOwner(memberId, realignReqDto.journeyId(), true);
+        journey.realignVisitOrder(realignReqDto.orders());
+        journey.getCityVisits().forEach(cityVisitRepository::save);
     }
 
     @Override
     public void delete(Long memberId, Long journeyId, Long cityVisitId) {
-        findJourneyAndValidateOwner(memberId, journeyId, true);
+        findJourneyAndValidateOwner(memberId, journeyId, false);
         cityVisitRepository.deleteCityVisit(cityVisitId);
     }
 

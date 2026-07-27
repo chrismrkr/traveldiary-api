@@ -47,9 +47,13 @@ public class CityVisit {
         this.journeyId = journeyId;
     }
 
+    public void changeOrder(int visitOrder) {
+        this.visitOrder = visitOrder;
+    }
+
     public void validateVisitedDate(LocalDate endDate, LocalDate journeyEndDate) {
         if(endDate.isAfter(journeyEndDate)) {
-            throw new IllegalArgumentException("도시 방문일은 여행 종료일 이후일 수 없음");
+            throw new InvalidCityVisitDateChange("도시 방문일은 여행 종료일 이후일 수 없음");
         }
     }
 }

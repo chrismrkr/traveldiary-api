@@ -1,6 +1,6 @@
 package kko.traveldiary_api.journey.application;
 
-import kko.traveldiary_api.journey.adaptor.controller.dto.request.JourneyPatchReqDto;
+import kko.traveldiary_api.journey.adaptor.inbound.controller.dto.request.JourneyPatchReqDto;
 import kko.traveldiary_api.journey.adaptor.infrastructure.CityVisitJpaRepository;
 import kko.traveldiary_api.journey.adaptor.infrastructure.JourneyJpaRepository;
 import kko.traveldiary_api.journey.application.exception.InvalidJourneyDateChangeException;
@@ -11,7 +11,7 @@ import kko.traveldiary_api.journey.application.required.JourneyRepository;
 import kko.traveldiary_api.journey.domain.CityVisit;
 import kko.traveldiary_api.journey.domain.Journey;
 import kko.traveldiary_api.journey.domain.Visibility;
-import kko.traveldiary_api.journey.adaptor.controller.dto.request.JourneyRegisterReqDto;
+import kko.traveldiary_api.journey.adaptor.inbound.controller.dto.request.JourneyRegisterReqDto;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

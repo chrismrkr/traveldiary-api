@@ -1,4 +1,4 @@
-package kko.traveldiary_api.journey.adaptor.controller.dto.response;
+package kko.traveldiary_api.journey.adaptor.inbound.controller.dto.response;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;

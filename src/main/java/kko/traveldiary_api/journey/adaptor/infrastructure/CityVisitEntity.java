@@ -37,16 +37,21 @@ public class CityVisitEntity {
     @Column(name = "city_id", nullable = false)
     private Long cityId;
 
+    @Column(name = "visit_order", nullable = false)
+    private int visitOrder;
+
     @Column(nullable = false)
     private LocalDate startDate;
 
     @Column(nullable = false)
     private LocalDate endDate;
 
-    public CityVisitEntity(Long id, JourneyEntity journey, Long cityId, LocalDate startDate, LocalDate endDate) {
+    public CityVisitEntity(Long id, JourneyEntity journey, Long cityId, int visitOrder,
+                           LocalDate startDate, LocalDate endDate) {
         this.id = id;
         this.journey = journey;
         this.cityId = cityId;
+        this.visitOrder = visitOrder;
         this.startDate = startDate;
         this.endDate = endDate;
     }
@@ -56,6 +61,7 @@ public class CityVisitEntity {
                 cityVisit.getId(),
                 JourneyEntity.reference(cityVisit.getJourneyId()),
                 cityVisit.getCityId(),
+                cityVisit.getVisitOrder(),
                 cityVisit.getStartDate(),
                 cityVisit.getEndDate()
         );
@@ -70,6 +76,7 @@ public class CityVisitEntity {
                 .id(id)
                 .journeyId(journey.getId())
                 .cityId(cityId)
+                .visitOrder(visitOrder)
                 .startDate(startDate)
                 .endDate(endDate)
                 .build();

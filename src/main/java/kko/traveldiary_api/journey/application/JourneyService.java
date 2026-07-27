@@ -1,7 +1,6 @@
 package kko.traveldiary_api.journey.application;
 
-import kko.traveldiary_api.journey.adaptor.controller.dto.request.JourneyPatchReqDto;
-import kko.traveldiary_api.journey.adaptor.infrastructure.JourneyJpaRepository;
+import kko.traveldiary_api.journey.adaptor.inbound.controller.dto.request.JourneyPatchReqDto;
 import kko.traveldiary_api.journey.application.exception.JourneyAccessDeniedException;
 import kko.traveldiary_api.journey.application.exception.JourneyNotFoundException;
 import kko.traveldiary_api.journey.application.provided.JourneyFinder;
@@ -9,14 +8,12 @@ import kko.traveldiary_api.journey.application.provided.JourneyManager;
 import kko.traveldiary_api.journey.application.required.JourneyRepository;
 import kko.traveldiary_api.journey.domain.Journey;
 import kko.traveldiary_api.journey.domain.Visibility;
-import kko.traveldiary_api.journey.adaptor.controller.dto.request.JourneyRegisterReqDto;
+import kko.traveldiary_api.journey.adaptor.inbound.controller.dto.request.JourneyRegisterReqDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor

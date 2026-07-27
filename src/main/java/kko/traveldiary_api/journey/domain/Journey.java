@@ -1,6 +1,7 @@
 package kko.traveldiary_api.journey.domain;
 
 import io.swagger.v3.oas.annotations.links.Link;
+import kko.traveldiary_api.journey.application.exception.InvalidCityVisitOrderException;
 import kko.traveldiary_api.journey.application.exception.InvalidJourneyDateChangeException;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -89,8 +90,34 @@ public class Journey {
     }
 
     public void visit(CityVisit cityVisit) {
+        cityVisit.changeOrder(this.cityVisits.size()); // 맨 뒤에 append (0-based)
         cityVisits.add(cityVisit);
         cityVisit.linkJourney(this.id);
+        touch();
+    }
+
+    public void realignVisitOrder(List<CityVisitOrder> cityVisitOrders) {
+        CityVisitOrder.validateOrder(cityVisitOrders);
+
+        // full replace: 요청 id 집합이 현재 방문 집합과 정확히 일치해야 한다.
+        Set<Long> requestIds = new HashSet<>();
+        cityVisitOrders.forEach(o -> requestIds.add(o.cityVisitId()));
+        Set<Long> currentIds = new HashSet<>();
+        this.cityVisits.forEach(cv -> currentIds.add(cv.getId()));
+        if (!requestIds.equals(currentIds)) {
+            throw new InvalidCityVisitOrderException("요청한 방문 목록이 여행의 방문과 일치하지 않습니다");
+        }
+
+        // id -> CityVisit 인덱스 (O(1) 조회)
+        Map<Long, CityVisit> byId = new HashMap<>();
+        this.cityVisits.forEach(cv -> byId.put(cv.getId(), cv));
+
+        // 요청 order 오름차순으로 정렬한 뒤 0..n-1 로 정규화한다.
+        List<CityVisitOrder> sorted = new ArrayList<>(cityVisitOrders);
+        sorted.sort(Comparator.comparingInt(CityVisitOrder::order));
+        for (int i = 0; i < sorted.size(); i++) {
+            byId.get(sorted.get(i).cityVisitId()).changeOrder(i);
+        }
         touch();
     }
 

@@ -2,6 +2,7 @@ package kko.traveldiary_api.post.application;
 
 import kko.traveldiary_api.post.application.provided.PostFinder;
 import kko.traveldiary_api.post.application.provided.PostManager;
+import kko.traveldiary_api.post.application.required.CityVisitQueryPort;
 import kko.traveldiary_api.post.application.required.PostRepository;
 import kko.traveldiary_api.post.domain.PlacePoint;
 import kko.traveldiary_api.post.domain.Post;
@@ -16,6 +17,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class PostService implements PostFinder, PostManager {
     private final PostRepository postRepository;
+    private final CityVisitQueryPort cityVisitQueryPort;
 
     @Override
     public Optional<Post> search(Long postId) {

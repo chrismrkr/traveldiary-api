@@ -1,10 +1,10 @@
-package kko.traveldiary_api.journey.adaptor.controller;
+package kko.traveldiary_api.journey.adaptor.inbound.controller;
 
-import kko.traveldiary_api.journey.adaptor.controller.dto.request.JourneyPatchReqDto;
-import kko.traveldiary_api.journey.adaptor.controller.dto.request.JourneyRegisterReqDto;
-import kko.traveldiary_api.journey.adaptor.controller.dto.response.CommonResponse;
-import kko.traveldiary_api.journey.adaptor.controller.dto.response.JourneyResponseDto;
-import kko.traveldiary_api.journey.adaptor.controller.dto.response.ResponseStatuses;
+import kko.traveldiary_api.journey.adaptor.inbound.controller.dto.request.JourneyPatchReqDto;
+import kko.traveldiary_api.journey.adaptor.inbound.controller.dto.request.JourneyRegisterReqDto;
+import kko.traveldiary_api.journey.adaptor.inbound.controller.dto.response.CommonResponse;
+import kko.traveldiary_api.journey.adaptor.inbound.controller.dto.response.JourneyResponseDto;
+import kko.traveldiary_api.journey.adaptor.inbound.controller.dto.response.ResponseStatuses;
 import kko.traveldiary_api.journey.application.provided.JourneyFinder;
 import kko.traveldiary_api.journey.application.provided.JourneyManager;
 import kko.traveldiary_api.journey.domain.Journey;

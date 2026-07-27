@@ -1,8 +1,8 @@
 package kko.traveldiary_api.journey.adaptor.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kko.traveldiary_api.journey.adaptor.controller.dto.request.JourneyPatchReqDto;
-import kko.traveldiary_api.journey.adaptor.controller.dto.request.JourneyRegisterReqDto;
+import kko.traveldiary_api.journey.adaptor.inbound.controller.dto.request.JourneyPatchReqDto;
+import kko.traveldiary_api.journey.adaptor.inbound.controller.dto.request.JourneyRegisterReqDto;
 import kko.traveldiary_api.journey.adaptor.infrastructure.CityVisitJpaRepository;
 import kko.traveldiary_api.journey.adaptor.infrastructure.JourneyJpaRepository;
 import kko.traveldiary_api.journey.application.required.CityVisitRepository;

@@ -1,4 +1,4 @@
-package kko.traveldiary_api.journey.adaptor.controller.dto.request;
+package kko.traveldiary_api.journey.adaptor.inbound.controller.dto.request;
 
 
 import java.time.LocalDate;
