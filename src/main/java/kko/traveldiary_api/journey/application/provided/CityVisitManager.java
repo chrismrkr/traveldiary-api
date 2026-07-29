@@ -6,6 +6,7 @@ import kko.traveldiary_api.journey.domain.CityVisit;
 import kko.traveldiary_api.shared.Coordinate;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 public interface CityVisitManager {
     CityVisit visit(Long memberId, Long journeyId, String cityName, String cityId, Coordinate coordinate,
@@ -13,5 +14,5 @@ public interface CityVisitManager {
     CityVisit modify(Long memberId, CityVisitModifyReqDto modifyReqDto);
     void realignVisitOrder(Long memberId, CityVisitOrderRealignReqDto realignReqDto);
     void delete(Long memberId, Long journeyId, Long cityVisitId);
-
+    Optional<Long> findOwnerIdOfCityVisit(Long cityVisitId);
 }

@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -68,6 +69,15 @@ public class CityVisitService implements CityVisitManager {
     public void delete(Long memberId, Long journeyId, Long cityVisitId) {
         findJourneyAndValidateOwner(memberId, journeyId, false);
         cityVisitRepository.deleteCityVisit(cityVisitId);
+    }
+
+    @Override
+    public Optional<Long> findOwnerIdOfCityVisit(Long cityVisitId) {
+        Optional<Long> journeyId = cityVisitRepository.findCityVisitByIdWithJourney(cityVisitId)
+                .map(CityVisit::getJourneyId);
+        return journeyId.flatMap(aLong -> journeyRepository.findById(aLong)
+                .map(Journey::getMemberId));
+
     }
 
     private Journey findJourneyAndValidateOwner(Long memberId, Long journeyId, boolean withCityVisits) {

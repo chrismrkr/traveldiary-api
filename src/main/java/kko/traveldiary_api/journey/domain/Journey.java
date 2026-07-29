@@ -108,11 +108,9 @@ public class Journey {
             throw new InvalidCityVisitOrderException("요청한 방문 목록이 여행의 방문과 일치하지 않습니다");
         }
 
-        // id -> CityVisit 인덱스 (O(1) 조회)
         Map<Long, CityVisit> byId = new HashMap<>();
         this.cityVisits.forEach(cv -> byId.put(cv.getId(), cv));
 
-        // 요청 order 오름차순으로 정렬한 뒤 0..n-1 로 정규화한다.
         List<CityVisitOrder> sorted = new ArrayList<>(cityVisitOrders);
         sorted.sort(Comparator.comparingInt(CityVisitOrder::order));
         for (int i = 0; i < sorted.size(); i++) {
