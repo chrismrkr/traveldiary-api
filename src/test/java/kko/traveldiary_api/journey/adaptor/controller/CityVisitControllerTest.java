@@ -111,6 +111,7 @@ class CityVisitControllerTest {
         Journey journey = saveJourney(OWNER);
 
         mockMvc.perform(post("/api/city-visit")
+                        .header("Idempotency-Key", java.util.UUID.randomUUID().toString())
                         .with(accessToken(OWNER))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(createReq(journey.getId(), LocalDate.of(2026, 1, 3), LocalDate.of(2026, 1, 7)))))
@@ -126,6 +127,7 @@ class CityVisitControllerTest {
         Journey journey = saveJourney(OWNER);
 
         mockMvc.perform(post("/api/city-visit")
+                        .header("Idempotency-Key", java.util.UUID.randomUUID().toString())
                         .with(accessToken(OTHER))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(createReq(journey.getId(), LocalDate.of(2026, 1, 3), LocalDate.of(2026, 1, 7)))))
@@ -141,6 +143,7 @@ class CityVisitControllerTest {
 
         // 방문 종료일(1/11)이 여행 종료일(1/10)을 벗어남
         mockMvc.perform(post("/api/city-visit")
+                        .header("Idempotency-Key", java.util.UUID.randomUUID().toString())
                         .with(accessToken(OWNER))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(createReq(journey.getId(), LocalDate.of(2026, 1, 3), LocalDate.of(2026, 1, 11)))))

@@ -27,3 +27,7 @@ spring:
 app:
   jwt:
     public-key: classpath:keys/traveldiary-public.pem
+  idempotency:
+    cleanup-interval: PT10M   # 정리 스케줄러 실행 주기
+    in-progress-ttl: PT5M     # 중단된 IN_PROGRESS 예약 만료 시간
+    completed-ttl: PT24H      # COMPLETED 응답 보관(재생 가능) 시간

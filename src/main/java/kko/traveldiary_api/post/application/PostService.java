@@ -11,7 +11,6 @@ import kko.traveldiary_api.post.domain.PlacePoint;
 import kko.traveldiary_api.post.domain.Post;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;

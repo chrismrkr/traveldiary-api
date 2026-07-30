@@ -2,9 +2,9 @@ package kko.traveldiary_api.journey.adaptor.inbound.controller;
 
 import kko.traveldiary_api.journey.adaptor.inbound.controller.dto.request.JourneyPatchReqDto;
 import kko.traveldiary_api.journey.adaptor.inbound.controller.dto.request.JourneyRegisterReqDto;
-import kko.traveldiary_api.journey.adaptor.inbound.controller.dto.response.CommonResponse;
+import kko.traveldiary_api.journey.adaptor.inbound.controller.dto.response.CommonJourneyResponse;
 import kko.traveldiary_api.journey.adaptor.inbound.controller.dto.response.JourneyResponseDto;
-import kko.traveldiary_api.journey.adaptor.inbound.controller.dto.response.ResponseStatuses;
+import kko.traveldiary_api.journey.adaptor.inbound.controller.dto.response.JourneyResponseStatuses;
 import kko.traveldiary_api.journey.application.provided.JourneyFinder;
 import kko.traveldiary_api.journey.application.provided.JourneyManager;
 import kko.traveldiary_api.journey.domain.Journey;
@@ -22,35 +22,35 @@ public class JourneyController {
     private final JourneyFinder journeyFinder;
 
     @GetMapping("/api/journey/{journeyId}")
-    public ResponseEntity<CommonResponse<Object>> handleFineJourneyByJourneyIdRequest(@AccessMemberId Long memberId, @PathVariable("journeyId") Long journeyId) {
+    public ResponseEntity<CommonJourneyResponse<Object>> handleFindJourneyByJourneyIdRequest(@AccessMemberId Long memberId, @PathVariable("journeyId") Long journeyId) {
         if(journeyId != null) {
             Journey journey = journeyFinder.findJourney(memberId, journeyId);
             return ResponseEntity.ok(
-                    new CommonResponse<>(ResponseStatuses.SUCCESS,
+                    new CommonJourneyResponse<>(JourneyResponseStatuses.SUCCESS,
                             JourneyResponseDto.convert(journey))
             );
         }
         List<Journey> myJourneys = journeyFinder.findMyJourneys(memberId);
         return ResponseEntity.ok(
-                new CommonResponse<>(ResponseStatuses.SUCCESS,
+                new CommonJourneyResponse<>(JourneyResponseStatuses.SUCCESS,
                         myJourneys.stream().map(JourneyResponseDto::convert).toList()
                 )
         );
     }
 
     @PostMapping("/api/journey")
-    public ResponseEntity<CommonResponse<JourneyResponseDto>> handleRegisteringJourneyRequest(@RequestBody JourneyRegisterReqDto reqDto) {
+    public ResponseEntity<CommonJourneyResponse<JourneyResponseDto>> handleRegisteringJourneyRequest(@RequestBody JourneyRegisterReqDto reqDto) {
         Journey registered = journeyManager.register(reqDto);
-        return ResponseEntity.ok(new CommonResponse<>(
-           ResponseStatuses.SUCCESS, JourneyResponseDto.convert(registered)
+        return ResponseEntity.ok(new CommonJourneyResponse<>(
+           JourneyResponseStatuses.SUCCESS, JourneyResponseDto.convert(registered)
         ));
     }
 
     @PatchMapping("/api/journey")
-    public ResponseEntity<CommonResponse<JourneyResponseDto>> handlePatchingJourneyRequest(@AccessMemberId Long memberId, @RequestBody JourneyPatchReqDto reqDto) {
+    public ResponseEntity<CommonJourneyResponse<JourneyResponseDto>> handlePatchingJourneyRequest(@AccessMemberId Long memberId, @RequestBody JourneyPatchReqDto reqDto) {
         Journey modified = journeyManager.modify(memberId, reqDto);
-        return ResponseEntity.ok(new CommonResponse<>(
-                ResponseStatuses.SUCCESS, JourneyResponseDto.convert(modified)
+        return ResponseEntity.ok(new CommonJourneyResponse<>(
+                JourneyResponseStatuses.SUCCESS, JourneyResponseDto.convert(modified)
         ));
     }
 

@@ -88,6 +88,8 @@ class JourneyControllerTest {
         JourneyRegisterReqDto dto = new JourneyRegisterReqDto(OWNER, START, END, "도쿄 여행", "PUBLIC");
 
         mockMvc.perform(post("/api/journey")
+                        .with(accessToken(OWNER))
+                        .header("Idempotency-Key", java.util.UUID.randomUUID().toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isOk())

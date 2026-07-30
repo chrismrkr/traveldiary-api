@@ -1,4 +1,4 @@
-package kko.traveldiary_api.journey.adaptor.inbound.controller.dto.response;
+package kko.traveldiary_api.post.adaptor.inbound.controller.dto.response;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-public class CommonResponse<T> {
-    private ResponseStatuses status;
+public class CommonPostResponse<T> {
+    private PostResponseStatuses status;
     private T data;
 }

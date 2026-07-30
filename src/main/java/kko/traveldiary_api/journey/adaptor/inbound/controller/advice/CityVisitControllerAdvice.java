@@ -1,8 +1,8 @@
 package kko.traveldiary_api.journey.adaptor.inbound.controller.advice;
 
 import kko.traveldiary_api.journey.adaptor.inbound.controller.CityVisitController;
-import kko.traveldiary_api.journey.adaptor.inbound.controller.dto.response.CommonResponse;
-import kko.traveldiary_api.journey.adaptor.inbound.controller.dto.response.ResponseStatuses;
+import kko.traveldiary_api.journey.adaptor.inbound.controller.dto.response.CommonJourneyResponse;
+import kko.traveldiary_api.journey.adaptor.inbound.controller.dto.response.JourneyResponseStatuses;
 import kko.traveldiary_api.journey.application.exception.CityVisitNotFoundException;
 import kko.traveldiary_api.journey.application.exception.InvalidCityVisitDateChange;
 import kko.traveldiary_api.journey.application.exception.InvalidCityVisitOrderException;
@@ -21,41 +21,41 @@ public class CityVisitControllerAdvice {
 
     @ExceptionHandler(exception = JourneyNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseEntity<CommonResponse<Object>> handleJourneyNotFound(JourneyNotFoundException exception) {
+    public ResponseEntity<CommonJourneyResponse<Object>> handleJourneyNotFound(JourneyNotFoundException exception) {
         return ResponseEntity.notFound().build();
     }
 
     @ExceptionHandler(exception = CityVisitNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseEntity<CommonResponse<Object>> handleCityVisitNotFound(CityVisitNotFoundException exception) {
+    public ResponseEntity<CommonJourneyResponse<Object>> handleCityVisitNotFound(CityVisitNotFoundException exception) {
         return ResponseEntity.notFound().build();
     }
 
     @ExceptionHandler(exception = JourneyAccessDeniedException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
-    public ResponseEntity<CommonResponse<Object>> handleJourneyAccessDenied(JourneyAccessDeniedException exception) {
+    public ResponseEntity<CommonJourneyResponse<Object>> handleJourneyAccessDenied(JourneyAccessDeniedException exception) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(new CommonResponse<>(ResponseStatuses.NOT_OWNED_JOURNEY_ACCESS, exception.getMessage()));
+                .body(new CommonJourneyResponse<>(JourneyResponseStatuses.NOT_OWNED_JOURNEY_ACCESS, exception.getMessage()));
     }
 
     @ExceptionHandler(exception = InvalidCityVisitDateChange.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseEntity<CommonResponse<Object>> handleInvalidCityVisitDateChange(InvalidCityVisitDateChange exception) {
+    public ResponseEntity<CommonJourneyResponse<Object>> handleInvalidCityVisitDateChange(InvalidCityVisitDateChange exception) {
         return ResponseEntity.badRequest()
-                .body(new CommonResponse<>(ResponseStatuses.INVALID_CITY_VISIT_DATE_CHANGE, exception.getMessage()));
+                .body(new CommonJourneyResponse<>(JourneyResponseStatuses.INVALID_CITY_VISIT_DATE_CHANGE, exception.getMessage()));
     }
 
     @ExceptionHandler(exception = InvalidCityVisitOrderException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseEntity<CommonResponse<Object>> handleInvalidCityVisitOrder(InvalidCityVisitOrderException exception) {
+    public ResponseEntity<CommonJourneyResponse<Object>> handleInvalidCityVisitOrder(InvalidCityVisitOrderException exception) {
         return ResponseEntity.badRequest()
-                .body(new CommonResponse<>(ResponseStatuses.INVALID_CITY_VISIT_ORDER, exception.getMessage()));
+                .body(new CommonJourneyResponse<>(JourneyResponseStatuses.INVALID_CITY_VISIT_ORDER, exception.getMessage()));
     }
 
     @ExceptionHandler(exception = Exception.class)
-    public ResponseEntity<CommonResponse<Object>> handleUnknownError(Exception exception) {
+    public ResponseEntity<CommonJourneyResponse<Object>> handleUnknownError(Exception exception) {
         log.error("[Unknown Error]", exception);
         return ResponseEntity.internalServerError()
-                .body(new CommonResponse<>(ResponseStatuses.UNKNOWN_ERROR, ""));
+                .body(new CommonJourneyResponse<>(JourneyResponseStatuses.UNKNOWN_ERROR, ""));
     }
 }
