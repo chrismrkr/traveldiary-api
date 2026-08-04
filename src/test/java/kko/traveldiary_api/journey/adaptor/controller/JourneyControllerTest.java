@@ -114,6 +114,20 @@ class JourneyControllerTest {
     }
 
     @Test
+    @DisplayName("GET /api/journey - 내 여행 목록만 반환한다")
+    void findMyJourneys() throws Exception {
+        saveJourney(OWNER, "도쿄 여행");
+        saveJourney(OWNER, "오사카 여행");
+        saveJourney(OTHER, "남의 여행"); // 제외되어야 한다
+
+        mockMvc.perform(get("/api/journey")
+                        .with(accessToken(OWNER)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("SUCCESS"))
+                .andExpect(jsonPath("$.data.length()").value(2));
+    }
+
+    @Test
     @DisplayName("GET /api/journey/{id} - 존재하지 않는 Journey면 404")
     void findJourney_notFound() throws Exception {
         mockMvc.perform(get("/api/journey/{journeyId}", 99_999L)

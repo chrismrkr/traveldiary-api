@@ -10,14 +10,16 @@ import java.time.LocalDate;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class CityVisitResponseDto {
-    private Long id;
+    private Long cityVisitId;
+    private Long cityId;
     private LocalDate startDate;
     private LocalDate endDate;
     private String cityUrl;
 
     @Builder
-    private CityVisitResponseDto(Long id, LocalDate startDate, LocalDate endDate, String cityUrl) {
-        this.id = id;
+    private CityVisitResponseDto(Long cityVisitId, Long cityId, LocalDate startDate, LocalDate endDate, String cityUrl) {
+        this.cityVisitId = cityVisitId;
+        this.cityId = cityId;
         this.startDate = startDate;
         this.endDate = endDate;
         this.cityUrl = cityUrl;
@@ -25,7 +27,8 @@ public class CityVisitResponseDto {
 
     public static CityVisitResponseDto convert(CityVisit cityVisit) {
         return CityVisitResponseDto.builder()
-                .id(cityVisit.getCityId())
+                .cityVisitId(cityVisit.getId())
+                .cityId(cityVisit.getCityId())
                 .startDate(cityVisit.getStartDate())
                 .endDate(cityVisit.getEndDate())
                 .cityUrl("/api/city/" + cityVisit.getCityId())

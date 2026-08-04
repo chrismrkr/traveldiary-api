@@ -21,20 +21,22 @@ public class JourneyController {
     private final JourneyManager journeyManager;
     private final JourneyFinder journeyFinder;
 
-    @GetMapping("/api/journey/{journeyId}")
-    public ResponseEntity<CommonJourneyResponse<Object>> handleFindJourneyByJourneyIdRequest(@AccessMemberId Long memberId, @PathVariable("journeyId") Long journeyId) {
-        if(journeyId != null) {
-            Journey journey = journeyFinder.findJourney(memberId, journeyId);
-            return ResponseEntity.ok(
-                    new CommonJourneyResponse<>(JourneyResponseStatuses.SUCCESS,
-                            JourneyResponseDto.convert(journey))
-            );
-        }
+    @GetMapping("/api/journey")
+    public ResponseEntity<CommonJourneyResponse<Object>> handleFindMyJourneysRequest(@AccessMemberId Long memberId) {
         List<Journey> myJourneys = journeyFinder.findMyJourneys(memberId);
         return ResponseEntity.ok(
                 new CommonJourneyResponse<>(JourneyResponseStatuses.SUCCESS,
                         myJourneys.stream().map(JourneyResponseDto::convert).toList()
                 )
+        );
+    }
+
+    @GetMapping("/api/journey/{journeyId}")
+    public ResponseEntity<CommonJourneyResponse<Object>> handleFindJourneyByJourneyIdRequest(@AccessMemberId Long memberId, @PathVariable("journeyId") Long journeyId) {
+        Journey journey = journeyFinder.findJourney(memberId, journeyId);
+        return ResponseEntity.ok(
+                new CommonJourneyResponse<>(JourneyResponseStatuses.SUCCESS,
+                        JourneyResponseDto.convert(journey))
         );
     }
 

@@ -116,7 +116,8 @@ class CityVisitControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(createReq(journey.getId(), LocalDate.of(2026, 1, 3), LocalDate.of(2026, 1, 7)))))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("SUCCESS"));
+                .andExpect(jsonPath("$.status").value("SUCCESS"))
+                .andExpect(jsonPath("$.data.cityVisitId").isNumber());
 
         assertThat(cityVisitJpaRepository.count()).isEqualTo(1);
     }

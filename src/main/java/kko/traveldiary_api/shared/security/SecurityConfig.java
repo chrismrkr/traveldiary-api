@@ -3,6 +3,7 @@ package kko.traveldiary_api.shared.security;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kko.traveldiary_api.shared.idempotency.IdempotencyKeyFilter;
 import kko.traveldiary_api.shared.idempotency.IdempotencyStore;
+import org.springframework.http.HttpMethod;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -31,6 +32,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Swagger / OpenAPI 문서는 인증 없이 접근 허용
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
+                        // 도시 이미지는 <img> 태그로 로드되어 Authorization 헤더를 실을 수 없으므로 공개
+                        .requestMatchers(HttpMethod.GET, "/api/city/image/**").permitAll()
                         .anyRequest().authenticated())
                 // access token 검증 (공개키 기반 JwtDecoder 사용)
                 .oauth2ResourceServer(oauth ->
