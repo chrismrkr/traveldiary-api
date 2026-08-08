@@ -41,8 +41,8 @@ public class JourneyController {
     }
 
     @PostMapping("/api/journey")
-    public ResponseEntity<CommonJourneyResponse<JourneyResponseDto>> handleRegisteringJourneyRequest(@RequestBody JourneyRegisterReqDto reqDto) {
-        Journey registered = journeyManager.register(reqDto);
+    public ResponseEntity<CommonJourneyResponse<JourneyResponseDto>> handleRegisteringJourneyRequest(@AccessMemberId Long memberId, @RequestBody JourneyRegisterReqDto reqDto) {
+        Journey registered = journeyManager.register(memberId, reqDto);
         return ResponseEntity.ok(new CommonJourneyResponse<>(
            JourneyResponseStatuses.SUCCESS, JourneyResponseDto.convert(registered)
         ));

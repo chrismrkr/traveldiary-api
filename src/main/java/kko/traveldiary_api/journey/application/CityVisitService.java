@@ -27,14 +27,15 @@ public class CityVisitService implements CityVisitManager {
     private final CityQueryPort cityQueryPort;
 
     @Override
-    public CityVisit visit(Long memberId, Long journeyId, String cityName, String cityId, Coordinate coordinate,
+    public CityVisit visit(Long memberId, Long journeyId, String cityName, String placeId, Coordinate coordinate,
                            LocalDate startDate, LocalDate endDate) {
         Journey journey = findJourneyAndValidateOwner(memberId, journeyId, true);
 
-        CityQueryPort.CityInfo cityInfo = cityQueryPort.search(cityName, cityId, coordinate);
+        CityQueryPort.CityInfo cityInfo = cityQueryPort.search(cityName, placeId, coordinate);
 
         CityVisit cityVisit = CityVisit.builder()
                 .journeyId(journey.getId()).cityId(cityInfo.cityId())
+                .placeId(placeId)
                 .startDate(startDate).endDate(endDate)
                 .build();
         cityVisit.validateVisitedDate(endDate, journey.getEndDate());

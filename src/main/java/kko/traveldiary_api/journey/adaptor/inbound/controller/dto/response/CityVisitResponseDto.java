@@ -12,14 +12,16 @@ import java.time.LocalDate;
 public class CityVisitResponseDto {
     private Long cityVisitId;
     private Long cityId;
+    private String placeId;
     private LocalDate startDate;
     private LocalDate endDate;
     private String cityUrl;
 
     @Builder
-    private CityVisitResponseDto(Long cityVisitId, Long cityId, LocalDate startDate, LocalDate endDate, String cityUrl) {
+    private CityVisitResponseDto(Long cityVisitId, Long cityId, String placeId, LocalDate startDate, LocalDate endDate, String cityUrl) {
         this.cityVisitId = cityVisitId;
         this.cityId = cityId;
+        this.placeId = placeId;
         this.startDate = startDate;
         this.endDate = endDate;
         this.cityUrl = cityUrl;
@@ -29,9 +31,10 @@ public class CityVisitResponseDto {
         return CityVisitResponseDto.builder()
                 .cityVisitId(cityVisit.getId())
                 .cityId(cityVisit.getCityId())
+                .placeId(cityVisit.getPlaceId())
                 .startDate(cityVisit.getStartDate())
                 .endDate(cityVisit.getEndDate())
-                .cityUrl("/api/city/" + cityVisit.getCityId())
+                .cityUrl("/api/city/" + cityVisit.getPlaceId())
                 .build();
     }
 }

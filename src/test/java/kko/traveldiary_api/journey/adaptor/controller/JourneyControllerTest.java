@@ -85,7 +85,7 @@ class JourneyControllerTest {
     @Test
     @DisplayName("POST /api/journey - Journey를 등록하면 200과 등록된 Journey를 반환한다")
     void register() throws Exception {
-        JourneyRegisterReqDto dto = new JourneyRegisterReqDto(OWNER, START, END, "도쿄 여행", "PUBLIC");
+        JourneyRegisterReqDto dto = new JourneyRegisterReqDto(START, END, "도쿄 여행", "PUBLIC");
 
         mockMvc.perform(post("/api/journey")
                         .with(accessToken(OWNER))

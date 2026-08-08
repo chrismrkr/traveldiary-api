@@ -117,7 +117,9 @@ class CityVisitControllerTest {
                         .content(json(createReq(journey.getId(), LocalDate.of(2026, 1, 3), LocalDate.of(2026, 1, 7)))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("SUCCESS"))
-                .andExpect(jsonPath("$.data.cityVisitId").isNumber());
+                .andExpect(jsonPath("$.data.cityVisitId").isNumber())
+                .andExpect(jsonPath("$.data.placeId").value("place-tokyo"))
+                .andExpect(jsonPath("$.data.cityUrl").value("/api/city/place-tokyo"));
 
         assertThat(cityVisitJpaRepository.count()).isEqualTo(1);
     }

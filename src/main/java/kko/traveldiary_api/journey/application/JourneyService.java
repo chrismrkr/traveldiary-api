@@ -31,9 +31,9 @@ public class JourneyService implements JourneyFinder, JourneyManager {
     }
 
     @Override
-    public Journey register(JourneyRegisterReqDto registerDto) {
+    public Journey register(Long memberId, JourneyRegisterReqDto registerDto) {
         Journey journey = Journey.builder()
-                .memberId(registerDto.memberId())
+                .memberId(memberId)
                 .startDate(registerDto.startDate())
                 .endDate(registerDto.endDate())
                 .name(registerDto.name())

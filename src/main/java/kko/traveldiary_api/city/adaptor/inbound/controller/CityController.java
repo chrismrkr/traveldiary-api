@@ -40,7 +40,6 @@ public class CityController {
         byte[] image = cityFinder.findImage(imageId);
         return ResponseEntity.ok()
                 .contentType(MediaType.IMAGE_PNG)
-                // imageId(UUID)는 재생성 시 새로 발급되어 이 URL 의 내용은 불변 → immutable
                 .cacheControl(CacheControl.maxAge(imageCacheTtl).cachePublic().immutable())
                 .body(image);
     }

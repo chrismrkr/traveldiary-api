@@ -37,7 +37,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated())
                 // access token 검증 (공개키 기반 JwtDecoder 사용)
                 .oauth2ResourceServer(oauth ->
-                        oauth.jwt(Customizer.withDefaults())
+                        oauth.jwt(Customizer.withDefaultgs())
                                 .authenticationEntryPoint(authenticationEntryPoint))
 
         // 인증 처리 실패 중 에러 (401)

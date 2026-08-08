@@ -4,6 +4,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public record CityVisitCreateReqDto(Long journeyId,
-                                    String cityName, String cityId, BigDecimal latitude,
+                                    String cityName, String placeId, BigDecimal latitude,
                                     BigDecimal longitude, LocalDate startDate, LocalDate endDate){
 }

@@ -9,7 +9,7 @@ import java.time.LocalDate;
 import java.util.Optional;
 
 public interface CityVisitManager {
-    CityVisit visit(Long memberId, Long journeyId, String cityName, String cityId, Coordinate coordinate,
+    CityVisit visit(Long memberId, Long journeyId, String cityName, String placeId, Coordinate coordinate,
                     LocalDate startDate, LocalDate endDate);
     CityVisit modify(Long memberId, CityVisitModifyReqDto modifyReqDto);
     void realignVisitOrder(Long memberId, CityVisitOrderRealignReqDto realignReqDto);

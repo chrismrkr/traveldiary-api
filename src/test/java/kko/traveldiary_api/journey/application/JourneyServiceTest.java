@@ -119,9 +119,9 @@ class JourneyServiceTest {
     @DisplayName("Journey를 등록할 수 있다")
     void register() {
         Long memberId = 1L;
-        JourneyRegisterReqDto dto = new JourneyRegisterReqDto(memberId, START, END, "도쿄 여행", "PUBLIC");
+        JourneyRegisterReqDto dto = new JourneyRegisterReqDto(START, END, "도쿄 여행", "PUBLIC");
 
-        Journey result = journeyService.register(dto);
+        Journey result = journeyService.register(memberId, dto);
 
         assertThat(result.getId()).isNotNull();
         assertThat(result.getMemberId()).isEqualTo(1L);
@@ -141,9 +141,9 @@ class JourneyServiceTest {
     @Test
     @DisplayName("잘못된 Visibility 문자열로 등록하면 예외가 발생한다")
     void register_invalidVisibility() {
-        JourneyRegisterReqDto dto = new JourneyRegisterReqDto(1L, START, END, "이상한 여행", "UNKNOWN");
+        JourneyRegisterReqDto dto = new JourneyRegisterReqDto(START, END, "이상한 여행", "UNKNOWN");
 
-        assertThatThrownBy(() -> journeyService.register(dto))
+        assertThatThrownBy(() -> journeyService.register(1L, dto))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 

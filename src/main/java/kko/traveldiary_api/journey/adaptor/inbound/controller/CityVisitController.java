@@ -29,7 +29,7 @@ public class CityVisitController {
     @PostMapping("/api/city-visit")
     public ResponseEntity<CommonJourneyResponse<CityVisitResponseDto>> handleCityVisitRegister(
             @AccessMemberId Long memberId, @RequestBody CityVisitCreateReqDto reqDto) {
-        CityVisit visited = cityVisitManager.visit(memberId, reqDto.journeyId(), reqDto.cityName(), reqDto.cityId(),
+        CityVisit visited = cityVisitManager.visit(memberId, reqDto.journeyId(), reqDto.cityName(), reqDto.placeId(),
                 new Coordinate(reqDto.latitude(), reqDto.longitude()),
                 reqDto.startDate(), reqDto.endDate());
         return ResponseEntity.ok(new CommonJourneyResponse<>(

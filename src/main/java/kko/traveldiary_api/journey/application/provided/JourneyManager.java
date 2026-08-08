@@ -5,7 +5,7 @@ import kko.traveldiary_api.journey.domain.Journey;
 import kko.traveldiary_api.journey.adaptor.inbound.controller.dto.request.JourneyRegisterReqDto;
 
 public interface JourneyManager {
-    Journey register(JourneyRegisterReqDto registerDto);
+    Journey register(Long memberId, JourneyRegisterReqDto registerDto);
     Journey modify(Long memberId, JourneyPatchReqDto patchDto);
     void delete(Long memberId, Long journeyId);
 }

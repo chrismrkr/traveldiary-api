@@ -67,7 +67,7 @@ class IdempotencyKeyFilterTest {
 
     private String registerBody() throws Exception {
         return objectMapper.writeValueAsString(
-                new JourneyRegisterReqDto(OWNER, START, END, "도쿄 여행", "PUBLIC"));
+                new JourneyRegisterReqDto(START, END, "도쿄 여행", "PUBLIC"));
     }
 
     @Test
