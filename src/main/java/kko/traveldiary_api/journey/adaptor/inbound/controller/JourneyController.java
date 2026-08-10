@@ -10,6 +10,7 @@ import kko.traveldiary_api.journey.application.provided.JourneyManager;
 import kko.traveldiary_api.journey.domain.Journey;
 import kko.traveldiary_api.shared.security.AccessMemberId;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,6 +18,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 public class JourneyController {
     private final JourneyManager journeyManager;
     private final JourneyFinder journeyFinder;

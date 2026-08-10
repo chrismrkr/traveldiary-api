@@ -72,7 +72,7 @@ class JourneyControllerTest {
 
     private void addCityVisit(Journey journey, LocalDate startDate, LocalDate endDate) {
         CityVisit cityVisit = CityVisit.builder()
-                .cityId(100L).startDate(startDate).endDate(endDate).build();
+                .cityId(100L).cityName("Tokyo").startDate(startDate).endDate(endDate).build();
         journey.visit(cityVisit);
         cityVisitRepository.save(cityVisit);
     }

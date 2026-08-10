@@ -12,15 +12,17 @@ import java.time.LocalDate;
 public class CityVisitResponseDto {
     private Long cityVisitId;
     private Long cityId;
+    private String cityName;
     private String placeId;
     private LocalDate startDate;
     private LocalDate endDate;
     private String cityUrl;
 
     @Builder
-    private CityVisitResponseDto(Long cityVisitId, Long cityId, String placeId, LocalDate startDate, LocalDate endDate, String cityUrl) {
+    private CityVisitResponseDto(Long cityVisitId, Long cityId, String cityName, String placeId, LocalDate startDate, LocalDate endDate, String cityUrl) {
         this.cityVisitId = cityVisitId;
         this.cityId = cityId;
+        this.cityName = cityName;
         this.placeId = placeId;
         this.startDate = startDate;
         this.endDate = endDate;
@@ -31,6 +33,7 @@ public class CityVisitResponseDto {
         return CityVisitResponseDto.builder()
                 .cityVisitId(cityVisit.getId())
                 .cityId(cityVisit.getCityId())
+                .cityName(cityVisit.getCityName())
                 .placeId(cityVisit.getPlaceId())
                 .startDate(cityVisit.getStartDate())
                 .endDate(cityVisit.getEndDate())

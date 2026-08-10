@@ -29,7 +29,7 @@ class CityVisitEntityTest {
                 .isActive(true)
                 .visibility(Visibility.PUBLIC)
                 .build();
-        CityVisitEntity cityVisitEntity = new CityVisitEntity(0L, entity, 1L, "place-0", 0, LocalDate.now(), LocalDate.now());
+        CityVisitEntity cityVisitEntity = new CityVisitEntity(0L, entity, 1L, "city-0", "place-0", 0, LocalDate.now(), LocalDate.now());
         entity.getCityVisits().add(cityVisitEntity);
 
         // when
@@ -49,7 +49,7 @@ class CityVisitEntityTest {
                 .visibility(Visibility.PUBLIC).build();
 
         // when
-        CityVisit cityVisit = CityVisit.builder().id(1L).cityId(123L).
+        CityVisit cityVisit = CityVisit.builder().id(1L).cityId(123L).cityName("Tokyo").
                 startDate(LocalDate.now()).endDate(LocalDate.now()).build();
         journey.visit(cityVisit);
         CityVisitEntity cityVisitEntity = CityVisitEntity.from(cityVisit);

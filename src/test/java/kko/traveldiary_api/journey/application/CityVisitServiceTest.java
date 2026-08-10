@@ -72,6 +72,7 @@ class CityVisitServiceTest {
     private CityVisit saveCityVisit(Journey journey, LocalDate startDate, LocalDate endDate) {
         CityVisit cityVisit = CityVisit.builder()
                 .cityId(100L)
+                .cityName("Tokyo")
                 .startDate(startDate)
                 .endDate(endDate)
                 .build();
@@ -93,6 +94,7 @@ class CityVisitServiceTest {
 
         assertThat(result.getId()).isNotNull();
         assertThat(result.getCityId()).isEqualTo(100L); // CityQueryPort 가 해석한 cityId
+        assertThat(result.getCityName()).isEqualTo("Tokyo"); // 요청의 cityName 이 반정규화되어 저장됨
         assertThat(result.getStartDate()).isEqualTo(LocalDate.of(2026, 1, 3));
         assertThat(result.getEndDate()).isEqualTo(LocalDate.of(2026, 1, 7));
         assertThat(result.getJourneyId()).isEqualTo(journey.getId());

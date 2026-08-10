@@ -19,7 +19,8 @@ public final class Coordinate {
     }
 
     public Coordinate(BigDecimal latitude, BigDecimal longitude) {
-        this.latitude = latitude;
-        this.longitude = longitude;
+        // 컬럼 numeric(9,6) 과 동일하게 정규화해야 insert(반올림 저장)와 조회(동등 비교)가 일치한다.
+        this.latitude = latitude.setScale(6, RoundingMode.HALF_UP);
+        this.longitude = longitude.setScale(6, RoundingMode.HALF_UP);
     }
 }

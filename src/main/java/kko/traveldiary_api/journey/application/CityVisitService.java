@@ -34,7 +34,8 @@ public class CityVisitService implements CityVisitManager {
         CityQueryPort.CityInfo cityInfo = cityQueryPort.search(cityName, placeId, coordinate);
 
         CityVisit cityVisit = CityVisit.builder()
-                .journeyId(journey.getId()).cityId(cityInfo.cityId())
+                .journeyId(journey.getId())
+                .cityId(cityInfo.cityId()).cityName(cityName)
                 .placeId(placeId)
                 .startDate(startDate).endDate(endDate)
                 .build();

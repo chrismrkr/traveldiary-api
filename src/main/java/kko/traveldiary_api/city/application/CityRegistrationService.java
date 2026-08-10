@@ -34,7 +34,10 @@ public class CityRegistrationService implements CityRegistration, CityDetailRegi
             city = repository.save(city);
             eventPublisher.publish(new CityGenerateRequest(name, placeId, coordinate));
         } catch (DataIntegrityViolationException ignored) {
-            return repository.findByCoordinate(coordinate).get();
+            return repository.findByCoordinate(coordinate)
+                    .orElseThrow(() -> new IllegalStateException(
+                            "City conflicted on unique constraint but not found by coordinate: "
+                                    + coordinate.getLatitude() + ", " + coordinate.getLongitude()));
         }
         return city;
     }

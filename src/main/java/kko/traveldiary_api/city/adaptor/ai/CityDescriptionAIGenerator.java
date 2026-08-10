@@ -4,17 +4,12 @@ import kko.traveldiary_api.city.application.required.CityDescriptionGenerator;
 import kko.traveldiary_api.city.domain.City;
 import kko.traveldiary_api.city.domain.CityDescription;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
 
-
-@Component
+// 수동 빈 등록: GenerativeAiConfig 에서 @Profile("!test") 로 등록한다.
 public class CityDescriptionAIGenerator implements CityDescriptionGenerator {
     private final ChatClient claudeChatClient;
 
-    @Autowired
-    public CityDescriptionAIGenerator(@Qualifier("claudeChatClient") ChatClient claudeChatClient) {
+    public CityDescriptionAIGenerator(ChatClient claudeChatClient) {
         this.claudeChatClient = claudeChatClient;
     }
 

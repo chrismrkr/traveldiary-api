@@ -61,6 +61,7 @@ class JourneyServiceTest {
     private void addCityVisit(Journey journey, LocalDate startDate, LocalDate endDate) {
         CityVisit cityVisit = CityVisit.builder()
                 .cityId(100L)
+                .cityName("Tokyo")
                 .startDate(startDate)
                 .endDate(endDate)
                 .build();

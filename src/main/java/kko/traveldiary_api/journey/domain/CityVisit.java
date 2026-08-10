@@ -15,16 +15,18 @@ public class CityVisit {
     private Long id;
     private Long journeyId;
     private Long cityId;
+    private String cityName;
     private String placeId;
     private int visitOrder;
     private LocalDate startDate;
     private LocalDate endDate;
 
     @Builder
-    private CityVisit(Long id, Long journeyId, Long cityId, String placeId, int visitOrder, LocalDate startDate, LocalDate endDate) {
+    private CityVisit(Long id, Long journeyId, Long cityId, String cityName, String placeId, int visitOrder, LocalDate startDate, LocalDate endDate) {
         this.id = id;
         this.journeyId = journeyId;
         this.cityId = cityId;
+        this.cityName = cityName;
         this.placeId = placeId;
         this.visitOrder = visitOrder;
         this.startDate = startDate;

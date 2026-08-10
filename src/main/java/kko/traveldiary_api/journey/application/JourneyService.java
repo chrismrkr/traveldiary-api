@@ -27,7 +27,7 @@ public class JourneyService implements JourneyFinder, JourneyManager {
 
     @Override
     public Journey findJourney(Long memberId, Long journeyId) {
-        return findAndValidateOwner(memberId, journeyId, false);
+        return findAndValidateOwner(memberId, journeyId, true);
     }
 
     @Override

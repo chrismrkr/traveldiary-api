@@ -27,7 +27,7 @@ class JourneyEntityTest {
                 .visibility(Visibility.PUBLIC)
                 .build();
         for(long idx=0; idx<3; idx++) {
-            CityVisitEntity cityVisitEntity = new CityVisitEntity(idx, entity, 1L, "place-" + idx, (int) idx, LocalDate.now(), LocalDate.now());
+            CityVisitEntity cityVisitEntity = new CityVisitEntity(idx, entity, 1L, "city-" + idx, "place-" + idx, (int) idx, LocalDate.now(), LocalDate.now());
             entity.getCityVisits().add(cityVisitEntity);
         }
 
@@ -59,7 +59,7 @@ class JourneyEntityTest {
                 .visibility(Visibility.PUBLIC)
                 .build();
         for(long idx=0; idx<3; idx++) {
-            CityVisitEntity cityVisitEntity = new CityVisitEntity(idx, entity, 1L, "place-" + idx, (int) idx, LocalDate.now(), LocalDate.now());
+            CityVisitEntity cityVisitEntity = new CityVisitEntity(idx, entity, 1L, "city-" + idx, "place-" + idx, (int) idx, LocalDate.now(), LocalDate.now());
             entity.getCityVisits().add(cityVisitEntity);
         }
 
@@ -85,7 +85,7 @@ class JourneyEntityTest {
                 .visibility(Visibility.PUBLIC).build();
         for(long idx=1; idx<=3; idx++) {
             journey.visit(
-                    CityVisit.builder().id(idx).cityId(123L).
+                    CityVisit.builder().id(idx).cityId(123L).cityName("Tokyo").
                     startDate(LocalDate.now()).endDate(LocalDate.now()).build());
         }
 

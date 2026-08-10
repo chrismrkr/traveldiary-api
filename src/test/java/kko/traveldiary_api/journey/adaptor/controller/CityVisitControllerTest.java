@@ -86,7 +86,7 @@ class CityVisitControllerTest {
 
     private CityVisit saveCityVisit(Journey journey, LocalDate startDate, LocalDate endDate) {
         CityVisit cityVisit = CityVisit.builder()
-                .cityId(100L).startDate(startDate).endDate(endDate).build();
+                .cityId(100L).cityName("Tokyo").startDate(startDate).endDate(endDate).build();
         journey.visit(cityVisit);
         return cityVisitRepository.save(cityVisit);
     }
@@ -118,6 +118,7 @@ class CityVisitControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("SUCCESS"))
                 .andExpect(jsonPath("$.data.cityVisitId").isNumber())
+                .andExpect(jsonPath("$.data.cityName").value("Tokyo"))
                 .andExpect(jsonPath("$.data.placeId").value("place-tokyo"))
                 .andExpect(jsonPath("$.data.cityUrl").value("/api/city/place-tokyo"));
 

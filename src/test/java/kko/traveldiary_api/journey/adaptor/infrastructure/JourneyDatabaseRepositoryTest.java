@@ -32,6 +32,7 @@ record JourneyDatabaseRepositoryTest(JourneyDatabaseRepository repository, TestE
     private CityVisit cityVisit(Long cityId) {
         return CityVisit.builder()
                 .cityId(cityId)
+                .cityName("Tokyo")
                 .startDate(LocalDate.of(2026, 1, 2))
                 .endDate(LocalDate.of(2026, 1, 4))
                 .build();
