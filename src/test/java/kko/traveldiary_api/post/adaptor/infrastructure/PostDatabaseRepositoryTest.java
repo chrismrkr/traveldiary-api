@@ -7,6 +7,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.TestConstructor;
 
@@ -18,7 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DataJpaTest
 @Import(PostDatabaseRepository.class)
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
-record PostDatabaseRepositoryTest(PostDatabaseRepository postDatabaseRepository, PostJpaRepository jpaRepository) {
+record PostDatabaseRepositoryTest(PostDatabaseRepository postDatabaseRepository, PostJpaRepository jpaRepository,
+                                 TestEntityManager em) {
 
     @BeforeEach
     void init() {
@@ -63,6 +65,42 @@ record PostDatabaseRepositoryTest(PostDatabaseRepository postDatabaseRepository,
 
         // 존재하지 않는 Id 는 비어있다
         assertThat(postDatabaseRepository.findById(99_999L)).isEmpty();
+    }
+
+    @Test
+    @DisplayName("장소 정보가 모두 비어 있는 Post도 저장 후 다시 조회할 수 있다")
+    void findById_withEmptyPlacePoint() {
+        Post saved = postDatabaseRepository.save(
+                Post.create(10L, PlacePoint.create(null, null, null, null), "장소 없는 글"));
+        // 컬럼이 전부 null 이면 Hibernate 는 embeddable 자체를 null 로 매핑한다.
+        // 영속성 컨텍스트를 비워야 캐시된 인스턴스가 아니라 DB 에서 다시 읽는다.
+        em.flush();
+        em.clear();
+
+        Optional<Post> found = postDatabaseRepository.findById(saved.getId());
+
+        assertThat(found).isPresent();
+        assertThat(found.get().getContent()).isEqualTo("장소 없는 글");
+        assertThat(found.get().getPlacePoint()).isNotNull();
+        assertThat(found.get().getPlacePoint().getPlaceName()).isNull();
+        assertThat(found.get().getPlacePoint().getProvider()).isNull();
+        assertThat(found.get().getPlacePoint().getPlaceId()).isNull();
+        assertThat(found.get().getPlacePoint().getCoordinate()).isNull();
+    }
+
+    @Test
+    @DisplayName("placeName 없이 placeId만 있어도 저장 후 다시 조회할 수 있다")
+    void findById_withoutPlaceName() {
+        Post saved = postDatabaseRepository.save(
+                Post.create(10L, PlacePoint.create(null, "google", "place-skytree", null), "이름 없는 장소의 글"));
+        em.flush();
+        em.clear();
+
+        Optional<Post> found = postDatabaseRepository.findById(saved.getId());
+
+        assertThat(found).isPresent();
+        assertThat(found.get().getPlacePoint().getPlaceName()).isNull();
+        assertThat(found.get().getPlacePoint().getPlaceId()).isEqualTo("place-skytree");
     }
 
     @Test

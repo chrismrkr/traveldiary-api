@@ -26,6 +26,11 @@ public class JourneyService implements JourneyFinder, JourneyManager {
     }
 
     @Override
+    public List<Journey> findMyJourneysWithCityVisit(Long memberId) {
+        return repository.findByMemberIdWithCityVisit(memberId);
+    }
+
+    @Override
     public Journey findJourney(Long memberId, Long journeyId) {
         return findAndValidateOwner(memberId, journeyId, true);
     }

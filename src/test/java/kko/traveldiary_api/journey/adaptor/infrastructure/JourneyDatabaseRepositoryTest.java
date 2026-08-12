@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.list;
 
 @DataJpaTest
 @Import(JourneyDatabaseRepository.class)
@@ -36,6 +37,15 @@ record JourneyDatabaseRepositoryTest(JourneyDatabaseRepository repository, TestE
                 .startDate(LocalDate.of(2026, 1, 2))
                 .endDate(LocalDate.of(2026, 1, 4))
                 .build();
+    }
+
+    /** journey 에 cityId 들을 방문으로 붙여 영속화한다. */
+    private void addCityVisits(Journey journey, long... cityIds) {
+        for (long cityId : cityIds) {
+            CityVisit visit = cityVisit(cityId);
+            journey.visit(visit);
+            repository.save(visit);
+        }
     }
 
     @BeforeEach
@@ -91,6 +101,68 @@ record JourneyDatabaseRepositoryTest(JourneyDatabaseRepository repository, TestE
     }
 
     @Test
+    @DisplayName("findByMemberIdWithCityVisit은 해당 회원의 Journey를 CityVisit과 함께 조회한다")
+    void findByMemberIdWithCityVisit() {
+        Journey tokyo = repository.save(sampleJourney(1L, "도쿄 여행"));
+        addCityVisits(tokyo, 100L, 101L);
+        Journey osaka = repository.save(sampleJourney(1L, "오사카 여행"));
+        addCityVisits(osaka, 200L);
+        Journey paris = repository.save(sampleJourney(2L, "파리 여행")); // 다른 회원 → 제외되어야 한다
+        addCityVisits(paris, 300L);
+        // 영속성 컨텍스트를 비워, fetch join 쿼리가 실제 DB에서 자식을 로딩하는지 검증한다.
+        em.flush();
+        em.clear();
+
+        List<Journey> journeys = repository.findByMemberIdWithCityVisit(1L);
+
+        assertThat(journeys).hasSize(2)
+                .extracting(Journey::getName)
+                .containsExactlyInAnyOrder("도쿄 여행", "오사카 여행");
+        assertThat(journeys)
+                .filteredOn(j -> j.getName().equals("도쿄 여행"))
+                .singleElement()
+                .extracting(Journey::getCityVisits, list(CityVisit.class))
+                .extracting(CityVisit::getCityId)
+                .containsExactlyInAnyOrder(100L, 101L);
+    }
+
+    @Test
+    @DisplayName("findByMemberIdWithCityVisit은 CityVisit이 여러 개여도 Journey를 중복 없이 반환한다")
+    void findByMemberIdWithCityVisit_noDuplicates() {
+        Journey journey = repository.save(sampleJourney(1L, "도쿄 여행"));
+        addCityVisits(journey, 100L, 101L, 102L);
+        em.flush();
+        em.clear();
+
+        List<Journey> journeys = repository.findByMemberIdWithCityVisit(1L);
+
+        // fetch join 은 자식 수만큼 행을 만들지만 Journey 는 한 번만 나와야 한다.
+        assertThat(journeys).singleElement()
+                .extracting(Journey::getCityVisits, list(CityVisit.class))
+                .hasSize(3);
+    }
+
+    @Test
+    @DisplayName("findByMemberIdWithCityVisit은 CityVisit이 없는 Journey도 반환한다")
+    void findByMemberIdWithCityVisit_withoutCityVisit() {
+        repository.save(sampleJourney(1L, "도쿄 여행"));
+        em.flush();
+        em.clear();
+
+        List<Journey> journeys = repository.findByMemberIdWithCityVisit(1L);
+
+        assertThat(journeys).singleElement()
+                .extracting(Journey::getCityVisits, list(CityVisit.class))
+                .isEmpty();
+    }
+
+    @Test
+    @DisplayName("findByMemberIdWithCityVisit은 Journey가 없으면 빈 목록을 반환한다")
+    void findByMemberIdWithCityVisit_notFound() {
+        assertThat(repository.findByMemberIdWithCityVisit(999L)).isEmpty();
+    }
+
+    @Test
     @DisplayName("CityVisit을 저장하면 기존 Journey에 FK로 연결되어 영속된다")
     void saveCityVisit() {
         Journey journey = repository.save(sampleJourney(1L, "도쿄 여행"));
@@ -109,11 +181,7 @@ record JourneyDatabaseRepositoryTest(JourneyDatabaseRepository repository, TestE
     @DisplayName("findByIdWithCityVisit은 Journey와 연관된 CityVisit을 함께 조회한다")
     void findByIdWithCityVisit() {
         Journey journey = repository.save(sampleJourney(1L, "도쿄 여행"));
-        for (long cityId = 100L; cityId < 103L; cityId++) {
-            CityVisit visit = cityVisit(cityId);
-            journey.visit(visit);
-            repository.save(visit);
-        }
+        addCityVisits(journey, 100L, 101L, 102L);
         // 영속성 컨텍스트를 비워, fetch join 쿼리가 실제 DB에서 자식을 로딩하는지 검증한다.
         em.flush();
         em.clear();

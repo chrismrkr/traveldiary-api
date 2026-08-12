@@ -7,5 +7,6 @@ import java.util.Optional;
 
 public interface JourneyFinder {
     List<Journey> findMyJourneys(Long memberId);
+    List<Journey> findMyJourneysWithCityVisit(Long memberId);
     Journey findJourney(Long memberId, Long journeyId);
 }

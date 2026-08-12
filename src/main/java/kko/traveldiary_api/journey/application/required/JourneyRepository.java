@@ -9,6 +9,7 @@ import java.util.Optional;
 
 public interface JourneyRepository {
     List<Journey> findByMemberId(Long memberId);
+    List<Journey> findByMemberIdWithCityVisit(Long memberId);
     Optional<Journey> findById(Long journeyId);
     Optional<Journey> findByIdWithCityVisit(Long journeyId);
     Journey save(Journey journey);

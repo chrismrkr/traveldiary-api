@@ -24,6 +24,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.InstanceOfAssertFactories.list;
 
 @SpringBootTest
 class JourneyServiceTest {
@@ -81,6 +82,29 @@ class JourneyServiceTest {
         assertThat(result).hasSize(2)
                 .extracting(Journey::getName)
                 .containsExactlyInAnyOrder("도쿄 여행", "오사카 여행");
+    }
+
+    @Test
+    @DisplayName("Journey 목록을 CityVisit과 함께 MemberId로 조회할 수 있다.")
+    void findMyJourneysWithCityVisit() {
+        Journey tokyo = saveJourney(1L, "도쿄 여행");
+        addCityVisit(tokyo, LocalDate.of(2026, 1, 3), LocalDate.of(2026, 1, 7));
+        saveJourney(1L, "오사카 여행"); // CityVisit 없는 Journey 도 포함되어야 한다.
+        Journey paris = saveJourney(2L, "파리 여행"); // 다른 회원 → 제외되어야 한다.
+        addCityVisit(paris, LocalDate.of(2026, 1, 3), LocalDate.of(2026, 1, 7));
+
+        List<Journey> result = journeyService.findMyJourneysWithCityVisit(1L);
+
+        assertThat(result).hasSize(2)
+                .extracting(Journey::getName)
+                .containsExactlyInAnyOrder("도쿄 여행", "오사카 여행");
+        assertThat(result)
+                .filteredOn(j -> j.getName().equals("도쿄 여행"))
+                .singleElement()
+                .extracting(Journey::getCityVisits, list(CityVisit.class))
+                .singleElement()
+                .extracting(CityVisit::getCityId)
+                .isEqualTo(100L);
     }
 
     @Test

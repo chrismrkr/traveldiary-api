@@ -128,6 +128,37 @@ class JourneyControllerTest {
     }
 
     @Test
+    @DisplayName("GET /api/journey - 각 여행의 CityVisit을 함께 반환한다")
+    void findMyJourneys_withCityVisits() throws Exception {
+        Journey journey = saveJourney(OWNER, "도쿄 여행");
+        addCityVisit(journey, LocalDate.of(2026, 1, 3), LocalDate.of(2026, 1, 7));
+        addCityVisit(journey, LocalDate.of(2026, 1, 7), LocalDate.of(2026, 1, 9));
+
+        mockMvc.perform(get("/api/journey")
+                        .with(accessToken(OWNER)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("SUCCESS"))
+                // CityVisit 이 2건이어도 Journey 는 중복 없이 1건이어야 한다.
+                .andExpect(jsonPath("$.data.length()").value(1))
+                .andExpect(jsonPath("$.data[0].name").value("도쿄 여행"))
+                .andExpect(jsonPath("$.data[0].cityVisits.length()").value(2))
+                .andExpect(jsonPath("$.data[0].cityVisits[0].cityName").value("Tokyo"));
+    }
+
+    @Test
+    @DisplayName("GET /api/journey - CityVisit이 없으면 빈 배열을 반환한다")
+    void findMyJourneys_withoutCityVisits() throws Exception {
+        saveJourney(OWNER, "도쿄 여행");
+
+        mockMvc.perform(get("/api/journey")
+                        .with(accessToken(OWNER)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.length()").value(1))
+                .andExpect(jsonPath("$.data[0].cityVisits").isArray())
+                .andExpect(jsonPath("$.data[0].cityVisits").isEmpty());
+    }
+
+    @Test
     @DisplayName("GET /api/journey/{id} - 존재하지 않는 Journey면 404")
     void findJourney_notFound() throws Exception {
         mockMvc.perform(get("/api/journey/{journeyId}", 99_999L)

@@ -1,6 +1,7 @@
 package kko.traveldiary_api.post.adaptor.infrastructure;
 
 import jakarta.persistence.*;
+import kko.traveldiary_api.post.domain.PlacePoint;
 import kko.traveldiary_api.post.domain.Post;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -46,7 +47,7 @@ public class PostEntity {
         return new PostEntity(
                 post.getId(),
                 post.getCityVisitId(),
-                PlacePointEmbeddable.from(post.getPlacePoint()),
+                post.getPlacePoint() == null ? null : PlacePointEmbeddable.from(post.getPlacePoint()),
                 post.getContent(),
                 post.getCreatedAt(),
                 post.getModifiedAt()
@@ -54,7 +55,10 @@ public class PostEntity {
     }
 
     public Post toDomain() {
-        return Post.create(this.id, this.cityVisitId, this.placePoint.toDomain(),
+        // PlacePoint 의 모든 필드가 선택값이므로, 컬럼이 전부 null 이면 Hibernate 가 embeddable 자체를 null 로 매핑한다.
+        // 이때 빈 PlacePoint 로 복원해야 등록 응답과 조회 응답의 placePoint 형태가 같아진다.
+        PlacePoint placePoint = this.placePoint == null ? PlacePoint.empty() : this.placePoint.toDomain();
+        return Post.create(this.id, this.cityVisitId, placePoint,
                 this.content, this.createdAt, this.modifiedAt);
     }
 }

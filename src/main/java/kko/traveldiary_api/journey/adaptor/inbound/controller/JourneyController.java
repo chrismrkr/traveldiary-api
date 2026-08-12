@@ -25,7 +25,7 @@ public class JourneyController {
 
     @GetMapping("/api/journey")
     public ResponseEntity<CommonJourneyResponse<Object>> handleFindMyJourneysRequest(@AccessMemberId Long memberId) {
-        List<Journey> myJourneys = journeyFinder.findMyJourneys(memberId);
+        List<Journey> myJourneys = journeyFinder.findMyJourneysWithCityVisit(memberId);
         return ResponseEntity.ok(
                 new CommonJourneyResponse<>(JourneyResponseStatuses.SUCCESS,
                         myJourneys.stream().map(JourneyResponseDto::convert).toList()

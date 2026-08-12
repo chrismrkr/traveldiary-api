@@ -25,6 +25,12 @@ public class JourneyDatabaseRepository implements JourneyRepository, CityVisitRe
     }
 
     @Override
+    public List<Journey> findByMemberIdWithCityVisit(Long memberId) {
+        return journeyJpaRepository.findByMemberIdWithCityVisit(memberId)
+                .stream().map(JourneyEntity::toDomainWithCityVisits).toList();
+    }
+
+    @Override
     public Optional<Journey> findById(Long journeyId) {
         return journeyJpaRepository.findById(journeyId)
                 .map(JourneyEntity::toDomain);

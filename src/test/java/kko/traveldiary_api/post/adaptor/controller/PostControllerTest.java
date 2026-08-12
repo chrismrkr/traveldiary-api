@@ -25,6 +25,7 @@ import java.math.BigDecimal;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
@@ -174,6 +175,55 @@ class PostControllerTest {
         // 좌표 없이도 영속되고, 재조회 시 coordinate 는 null 이다.
         Post reloaded = postRepository.findByCityVisitId(CITY_VISIT_A).get(0);
         assertThat(reloaded.getPlacePoint().getCoordinate()).isNull();
+    }
+
+    @Test
+    @DisplayName("POST /api/post - placeName이 없어도 추가되고, 조회 시 placeName은 null이다")
+    void attach_withoutPlaceName() throws Exception {
+        PostAttachReqDto dto = new PostAttachReqDto(
+                CITY_VISIT_A, null, "google", "place-skytree", null, null, "장소 이름 없는 글");
+
+        mockMvc.perform(post("/api/post")
+                        .header("Idempotency-Key", java.util.UUID.randomUUID().toString())
+                        .with(accessToken(OWNER))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("SUCCESS"))
+                .andExpect(jsonPath("$.data.placePoint.placeName").value(nullValue()))
+                .andExpect(jsonPath("$.data.placePoint.placeId").value("place-skytree"));
+
+        Long postId = postRepository.findByCityVisitId(CITY_VISIT_A).get(0).getId();
+        mockMvc.perform(get("/api/post/{postId}", postId)
+                        .with(accessToken(OWNER)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.placePoint.placeName").value(nullValue()))
+                .andExpect(jsonPath("$.data.placePoint.placeId").value("place-skytree"));
+    }
+
+    @Test
+    @DisplayName("POST /api/post - 장소 정보가 전혀 없어도 추가되고, 조회 시 placePoint는 빈 객체다")
+    void attach_withoutPlacePoint() throws Exception {
+        PostAttachReqDto dto = new PostAttachReqDto(
+                CITY_VISIT_A, null, null, null, null, null, "장소 정보 없는 글");
+
+        mockMvc.perform(post("/api/post")
+                        .header("Idempotency-Key", java.util.UUID.randomUUID().toString())
+                        .with(accessToken(OWNER))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("SUCCESS"));
+
+        // 컬럼이 전부 null 이라 Hibernate 가 embeddable 을 null 로 넘기더라도
+        // 조회가 실패하지 않고 등록 응답과 동일한 형태(placePoint 객체)를 유지해야 한다.
+        Long postId = postRepository.findByCityVisitId(CITY_VISIT_A).get(0).getId();
+        mockMvc.perform(get("/api/post/{postId}", postId)
+                        .with(accessToken(OWNER)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content").value("장소 정보 없는 글"))
+                .andExpect(jsonPath("$.data.placePoint").exists())
+                .andExpect(jsonPath("$.data.placePoint.placeName").value(nullValue()));
     }
 
     @Test
