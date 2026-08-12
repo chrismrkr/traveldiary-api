@@ -22,10 +22,11 @@ public class PlacePointEmbeddable {
 
     @Embedded
     @AttributeOverrides({
+            // 좌표는 선택값 → nullable. 둘 다 null 이면 Hibernate 가 coordinate 를 null 로 매핑한다.
             @AttributeOverride(name = "latitude",
-                    column = @Column(name = "place_latitude", nullable = false)),
+                    column = @Column(name = "place_latitude")),
             @AttributeOverride(name = "longitude",
-                    column = @Column(name = "place_longitude", nullable = false))
+                    column = @Column(name = "place_longitude"))
     })
     private Coordinate coordinate;
 

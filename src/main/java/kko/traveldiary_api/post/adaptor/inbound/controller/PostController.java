@@ -42,7 +42,10 @@ public class PostController {
 
     @PostMapping("/api/post")
     public ResponseEntity<CommonPostResponse<Object>> handleAttachPostReq(@AccessMemberId Long memberId, @RequestBody PostAttachReqDto reqDto) {
-        Coordinate coordinate = new Coordinate(reqDto.latitude(), reqDto.longitude());
+        // latitude/longitude 는 빈 값으로 들어올 수 있으므로 둘 다 있을 때만 좌표를 만든다.
+        Coordinate coordinate = (reqDto.latitude() != null && reqDto.longitude() != null)
+                ? new Coordinate(reqDto.latitude(), reqDto.longitude())
+                : null;
         Post attached = postManager.attach(memberId, reqDto.cityVisitId(),
                 PlacePoint.create(reqDto.placeName(), reqDto.provider(), reqDto.placeId(), coordinate), reqDto.contents());
         return ResponseEntity.ok(new CommonPostResponse<>(

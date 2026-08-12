@@ -157,6 +157,26 @@ class PostControllerTest {
     }
 
     @Test
+    @DisplayName("POST /api/post - 좌표(latitude/longitude)가 없어도 추가된다")
+    void attach_withoutCoordinate() throws Exception {
+        PostAttachReqDto dto = new PostAttachReqDto(
+                CITY_VISIT_A, "도쿄 스카이트리", "google", "place-skytree", null, null, "좌표 없는 글");
+
+        mockMvc.perform(post("/api/post")
+                        .header("Idempotency-Key", java.util.UUID.randomUUID().toString())
+                        .with(accessToken(OWNER))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("SUCCESS"))
+                .andExpect(jsonPath("$.data.placePoint.placeName").value("도쿄 스카이트리"));
+
+        // 좌표 없이도 영속되고, 재조회 시 coordinate 는 null 이다.
+        Post reloaded = postRepository.findByCityVisitId(CITY_VISIT_A).get(0);
+        assertThat(reloaded.getPlacePoint().getCoordinate()).isNull();
+    }
+
+    @Test
     @DisplayName("POST /api/post - CityVisit이 존재하지 않으면 404")
     void attach_cityVisitNotFound() throws Exception {
         given(cityVisitAccessPort.findOwnerIdOfCityVisit(CITY_VISIT_A))

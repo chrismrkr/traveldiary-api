@@ -33,8 +33,8 @@ public class PlacePointResponseDto {
                 .placeName(placePoint.getPlaceName())
                 .provider(placePoint.getProvider())
                 .placeId(placePoint.getPlaceId())
-                .latitude(coordinate.getLatitude())
-                .longitude(coordinate.getLongitude())
+                .latitude(coordinate == null ? null : coordinate.getLatitude())
+                .longitude(coordinate == null ? null : coordinate.getLongitude())
                 .build();
     }
 }
