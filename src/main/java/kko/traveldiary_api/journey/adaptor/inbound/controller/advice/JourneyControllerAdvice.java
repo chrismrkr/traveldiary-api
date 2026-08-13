@@ -2,6 +2,7 @@ package kko.traveldiary_api.journey.adaptor.inbound.controller.advice;
 
 import kko.traveldiary_api.journey.adaptor.inbound.controller.JourneyController;
 import kko.traveldiary_api.journey.adaptor.inbound.controller.dto.response.CommonJourneyResponse;
+import kko.traveldiary_api.journey.adaptor.inbound.controller.dto.response.ErrorResponse;
 import kko.traveldiary_api.journey.adaptor.inbound.controller.dto.response.JourneyResponseStatuses;
 import kko.traveldiary_api.journey.application.exception.InvalidJourneyDateChangeException;
 import kko.traveldiary_api.journey.application.exception.JourneyAccessDeniedException;
@@ -9,38 +10,61 @@ import kko.traveldiary_api.journey.application.exception.JourneyNotFoundExceptio
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import javax.validation.ConstraintViolationException;
+import java.util.List;
 
 @Slf4j
 @RestControllerAdvice(assignableTypes = {JourneyController.class})
 public class JourneyControllerAdvice {
     @ExceptionHandler(exception = InvalidJourneyDateChangeException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseEntity<CommonJourneyResponse<Object>> handleInvalidJourneyDateChange(InvalidJourneyDateChangeException exception) {
+    public ResponseEntity<ErrorResponse> handleInvalidJourneyDateChange(InvalidJourneyDateChangeException exception) {
+        ErrorResponse errorResponse = new ErrorResponse(JourneyResponseStatuses.INVALID_JOURNEY_DATE_CHANGE, exception.getMessage(), null);
         return ResponseEntity.badRequest()
-                .body(new CommonJourneyResponse<>(JourneyResponseStatuses.INVALID_JOURNEY_DATE_CHANGE, exception.getMessage()));
+                .body(errorResponse);
+    }
+
+    @ExceptionHandler(exception = MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<ErrorResponse> handleInvalidMethodParam(MethodArgumentNotValidException exception) {
+        List<ErrorResponse.FieldError> fieldErrors = exception.getBindingResult().getFieldErrors().stream()
+                .map(err -> new ErrorResponse.FieldError(
+                        err.getField(),
+                        err.getDefaultMessage(),
+                        err.getRejectedValue()
+                ))
+                .toList();
+        ErrorResponse errorResponse = new ErrorResponse(JourneyResponseStatuses.INVALID_PARAM, "", fieldErrors);
+        return ResponseEntity.badRequest()
+                .body(errorResponse);
     }
 
     @ExceptionHandler(exception = JourneyNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseEntity<CommonJourneyResponse<Object>> handleInvalidJourneyNotFound(JourneyNotFoundException exception) {
+    public ResponseEntity<ErrorResponse> handleInvalidJourneyNotFound(JourneyNotFoundException exception) {
         return ResponseEntity.notFound().build();
     }
 
     @ExceptionHandler(exception = JourneyAccessDeniedException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
-    public ResponseEntity<CommonJourneyResponse<Object>> handleJourneyAccessDenied(JourneyAccessDeniedException exception) {
+    public ResponseEntity<ErrorResponse> handleJourneyAccessDenied(JourneyAccessDeniedException exception) {
+        ErrorResponse errorResponse = new ErrorResponse(JourneyResponseStatuses.NOT_OWNED_JOURNEY_ACCESS, exception.getMessage(), null);
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(new CommonJourneyResponse<>(JourneyResponseStatuses.NOT_OWNED_JOURNEY_ACCESS, exception.getMessage()));
+                .body(errorResponse);
     }
 
     @ExceptionHandler(exception = Exception.class)
-    public ResponseEntity<CommonJourneyResponse<Object>> handleUnknownError(Exception exception) {
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ResponseEntity<ErrorResponse> handleUnknownError(Exception exception) {
         log.error("[Unknown Error]", exception);
+        exception.printStackTrace();
         return ResponseEntity.internalServerError()
-                .body(new CommonJourneyResponse<>(JourneyResponseStatuses.UNKNOWN_ERROR, ""));
+                .body(new ErrorResponse(JourneyResponseStatuses.UNKNOWN_ERROR, exception.getMessage(), null));
     }
 
 }

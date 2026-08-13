@@ -1,9 +1,37 @@
 package kko.traveldiary_api.journey.adaptor.inbound.controller.dto.request;
 
+import jakarta.validation.constraints.NotBlank;
+
+import javax.validation.constraints.DecimalMax;
+import javax.validation.constraints.DecimalMin;
+import javax.validation.constraints.Digits;
+import javax.validation.constraints.NotNull;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-public record CityVisitCreateReqDto(Long journeyId,
-                                    String cityName, String placeId, BigDecimal latitude,
-                                    BigDecimal longitude, LocalDate startDate, LocalDate endDate){
+public record CityVisitCreateReqDto(
+        @NotNull
+        Long journeyId,
+
+        @NotBlank
+        String cityName,
+
+        String placeId,
+
+        @DecimalMin("-90.0") @DecimalMax("90.0")
+        @Digits(integer = 2, fraction = 4)
+        @NotNull
+        BigDecimal latitude,
+
+        @DecimalMin("-180.0") @DecimalMax("180.0")
+        @Digits(integer = 3, fraction = 4)
+        @NotNull
+        BigDecimal longitude,
+
+        @NotNull
+        LocalDate startDate,
+
+        @NotNull
+        LocalDate endDate){
 }

@@ -67,7 +67,7 @@ public class Journey {
     public void changeStartDate(LocalDate startDate, List<CityVisit> cityVisitList) {
         for(CityVisit cityVisit : cityVisitList) {
             if(cityVisit.getStartDate().isBefore(startDate)) {
-                throw new InvalidJourneyDateChangeException("Journey 시작일 보다 도시 방문 시작일이 이전일 수 없음");
+                throw new InvalidJourneyDateChangeException("City visit start date must be on or after the journey start date.");
             }
         }
         this.startDate = startDate;
@@ -77,7 +77,7 @@ public class Journey {
     public void changeEndDate(LocalDate endDate, List<CityVisit> cityVisitList) {
         for(CityVisit cityVisit : cityVisitList) {
             if(cityVisit.getEndDate().isAfter(endDate)) {
-                throw new InvalidJourneyDateChangeException("도시 방문 종료일 보다 Journey 종료일이 빠를 수 없음");
+                throw new InvalidJourneyDateChangeException("Journey end date must be on or after the city visit end date.");
             }
         }
         this.endDate = endDate;
