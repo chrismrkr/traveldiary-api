@@ -15,6 +15,10 @@ import kko.traveldiary_api.journey.application.required.JourneyRepository;
 import kko.traveldiary_api.journey.domain.CityVisit;
 import kko.traveldiary_api.journey.domain.Journey;
 import kko.traveldiary_api.journey.domain.Visibility;
+import kko.traveldiary_api.post.adaptor.infrastructure.PostJpaRepository;
+import kko.traveldiary_api.post.application.required.PostRepository;
+import kko.traveldiary_api.post.domain.PlacePoint;
+import kko.traveldiary_api.post.domain.Post;
 import kko.traveldiary_api.shared.Coordinate;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,12 +61,25 @@ class CityVisitServiceTest {
     @Autowired
     CityVisitJpaRepository cityVisitJpaRepository;
 
+    @Autowired
+    PostRepository postRepository;
+
+    @Autowired
+    PostJpaRepository postJpaRepository;
+
     @BeforeEach
     @AfterEach
     void clean() {
         // FK(city_visit.journey_id) 때문에 자식부터 삭제한다.
+        postJpaRepository.deleteAll();
         cityVisitJpaRepository.deleteAll();
         journeyJpaRepository.deleteAll();
+    }
+
+    private Post savePost(Long cityVisitId, String content) {
+        PlacePoint placePoint = PlacePoint.create(
+                "도쿄 스카이트리", "google", "place-skytree", new Coordinate(35.7100, 139.8107));
+        return postRepository.save(Post.create(cityVisitId, placePoint, content));
     }
 
     private Journey saveJourney(Long memberId) {
@@ -328,5 +345,52 @@ class CityVisitServiceTest {
                 new CityVisitOrderRealignReqDto(journey.getId(),
                         List.of(new CityVisitOrder(a.getId(), 0)))))
                 .isInstanceOf(JourneyAccessDeniedException.class);
+    }
+
+    @Test
+    @DisplayName("도시 방문을 삭제하면 그 방문에 달린 Post 도 함께 삭제된다")
+    void delete_cascadesToPosts() {
+        Long memberId = 1L;
+        Journey journey = saveJourney(memberId);
+        CityVisit target = saveCityVisit(journey, LocalDate.of(2026, 1, 3), LocalDate.of(2026, 1, 4));
+        CityVisit survivor = saveCityVisit(journey, LocalDate.of(2026, 1, 5), LocalDate.of(2026, 1, 6));
+        savePost(target.getId(), "삭제될 글1");
+        savePost(target.getId(), "삭제될 글2");
+        savePost(survivor.getId(), "남을 글");
+
+        cityVisitService.delete(memberId, journey.getId(), target.getId());
+
+        assertThat(cityVisitRepository.findCityVisitByIdWithJourney(target.getId())).isEmpty();
+        assertThat(postRepository.findByCityVisitId(target.getId())).isEmpty();
+        // 같은 Journey 의 다른 방문에 달린 글은 그대로여야 한다.
+        assertThat(postRepository.findByCityVisitId(survivor.getId()))
+                .extracting(Post::getContent).containsExactly("남을 글");
+    }
+
+    @Test
+    @DisplayName("Post 가 없는 도시 방문도 정상적으로 삭제된다")
+    void delete_withoutPosts() {
+        Long memberId = 1L;
+        Journey journey = saveJourney(memberId);
+        CityVisit cityVisit = saveCityVisit(journey, LocalDate.of(2026, 1, 3), LocalDate.of(2026, 1, 7));
+
+        cityVisitService.delete(memberId, journey.getId(), cityVisit.getId());
+
+        assertThat(cityVisitRepository.findCityVisitByIdWithJourney(cityVisit.getId())).isEmpty();
+    }
+
+    @Test
+    @DisplayName("소유자가 아니면 도시 방문도 Post 도 삭제되지 않는다")
+    void delete_accessDenied_keepsPosts() {
+        Long memberId = 1L;
+        Journey journey = saveJourney(memberId);
+        CityVisit cityVisit = saveCityVisit(journey, LocalDate.of(2026, 1, 3), LocalDate.of(2026, 1, 7));
+        savePost(cityVisit.getId(), "남아야 하는 글");
+
+        assertThatThrownBy(() -> cityVisitService.delete(2L, journey.getId(), cityVisit.getId()))
+                .isInstanceOf(JourneyAccessDeniedException.class);
+
+        assertThat(cityVisitRepository.findCityVisitByIdWithJourney(cityVisit.getId())).isPresent();
+        assertThat(postRepository.findByCityVisitId(cityVisit.getId())).hasSize(1);
     }
 }

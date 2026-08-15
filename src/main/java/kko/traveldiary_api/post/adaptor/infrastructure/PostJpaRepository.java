@@ -6,5 +6,6 @@ import java.util.List;
 
 public interface PostJpaRepository extends JpaRepository<PostEntity, Long> {
     List<PostEntity> findByCityVisitId(Long cityVisitId);
+    void deleteByCityVisitId(Long cityVisitId);
 
 }

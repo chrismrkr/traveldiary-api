@@ -7,4 +7,5 @@ public interface PostManager {
     Post attach(Long memberId, Long cityVisitId, PlacePoint placePoint, String content);
     Post updateContent(Long memberId, Long postId, String newContent);
     void detach(Long memberId, Long postId);
+    void detachByCityVisitId(Long memberId, Long cityVisitId);
 }

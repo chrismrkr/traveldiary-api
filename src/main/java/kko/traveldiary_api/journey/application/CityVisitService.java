@@ -9,6 +9,7 @@ import kko.traveldiary_api.journey.application.provided.CityVisitManager;
 import kko.traveldiary_api.journey.application.required.CityQueryPort;
 import kko.traveldiary_api.journey.application.required.CityVisitRepository;
 import kko.traveldiary_api.journey.application.required.JourneyRepository;
+import kko.traveldiary_api.journey.application.required.PostQueryPort;
 import kko.traveldiary_api.journey.domain.CityVisit;
 import kko.traveldiary_api.journey.domain.Journey;
 import kko.traveldiary_api.shared.Coordinate;
@@ -25,6 +26,7 @@ public class CityVisitService implements CityVisitManager {
     private final JourneyRepository journeyRepository;
     private final CityVisitRepository cityVisitRepository;
     private final CityQueryPort cityQueryPort;
+    private final PostQueryPort postQueryPort;
 
     @Override
     public CityVisit visit(Long memberId, Long journeyId, String cityName, String placeId, Coordinate coordinate,
@@ -70,6 +72,8 @@ public class CityVisitService implements CityVisitManager {
     @Override
     public void delete(Long memberId, Long journeyId, Long cityVisitId) {
         findJourneyAndValidateOwner(memberId, journeyId, false);
+        boolean isDetached = postQueryPort.detachByCityVisitId(cityVisitId);
+        if (!isDetached) throw new IllegalStateException("Posts belong to CityVisit can not be deleted. (Unknown Error)");
         cityVisitRepository.deleteCityVisit(cityVisitId);
     }
 

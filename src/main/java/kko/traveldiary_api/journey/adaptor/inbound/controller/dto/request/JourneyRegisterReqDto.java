@@ -3,10 +3,10 @@ package kko.traveldiary_api.journey.adaptor.inbound.controller.dto.request;
 
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import kko.traveldiary_api.journey.domain.Visibility;
 
-import javax.validation.constraints.Max;
-import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 
 
@@ -18,7 +18,7 @@ public record JourneyRegisterReqDto(
         LocalDate endDate,
 
         @NotBlank
-        @Max(value = 20, message = "Journey name is too long (max 20 characters).")
+        @Size(max = 20, message = "Journey name is too long (max {max} characters).")
         String name,
 
         @NotNull

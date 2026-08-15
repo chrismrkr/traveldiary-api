@@ -1,6 +1,7 @@
 package kko.traveldiary_api.journey.adaptor.inbound.controller.dto.request;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
+
 import java.time.LocalDate;
 
 public record CityVisitModifyReqDto(

@@ -25,6 +25,7 @@ import java.math.BigDecimal;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
@@ -257,6 +258,89 @@ class PostControllerTest {
                 .andExpect(jsonPath("$.status").value("NOT_OWNED_POST_ACCESS"));
 
         assertThat(postRepository.findByCityVisitId(CITY_VISIT_A)).isEmpty();
+    }
+
+    @Test
+    @DisplayName("POST /api/post - 필수 값이 비어 있으면 400과 INVALID_PARAM, 필드별 오류를 반환한다")
+    void attach_invalidParam() throws Exception {
+        // cityVisitId 누락 + contents 공백
+        PostAttachReqDto dto = new PostAttachReqDto(
+                null, "도쿄 스카이트리", "google", "place-skytree", null, null, "   ");
+
+        mockMvc.perform(post("/api/post")
+                        .header("Idempotency-Key", java.util.UUID.randomUUID().toString())
+                        .with(accessToken(OWNER))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value("INVALID_PARAM"))
+                .andExpect(jsonPath("$.errors.length()").value(2))
+                .andExpect(jsonPath("$.errors[*].field", containsInAnyOrder("cityVisitId", "contents")));
+
+        assertThat(postJpaRepository.count()).isZero();
+    }
+
+    @Test
+    @DisplayName("POST /api/post - 좌표가 범위를 벗어나면 400과 해당 필드 오류를 반환한다")
+    void attach_coordinateOutOfRange() throws Exception {
+        PostAttachReqDto dto = new PostAttachReqDto(
+                CITY_VISIT_A, "도쿄 스카이트리", "google", "place-skytree",
+                new BigDecimal("91.0000"), new BigDecimal("181.0000"), "좌표가 이상한 글");
+
+        mockMvc.perform(post("/api/post")
+                        .header("Idempotency-Key", java.util.UUID.randomUUID().toString())
+                        .with(accessToken(OWNER))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value("INVALID_PARAM"))
+                .andExpect(jsonPath("$.errors[*].field", containsInAnyOrder("latitude", "longitude")));
+
+        assertThat(postRepository.findByCityVisitId(CITY_VISIT_A)).isEmpty();
+    }
+
+    @Test
+    @DisplayName("POST /api/post - 본문이 4000자를 넘으면 400과 contents 필드 오류를 반환한다")
+    void attach_contentsTooLong() throws Exception {
+        PostAttachReqDto dto = attachReqDto(CITY_VISIT_A, "가".repeat(4001));
+
+        mockMvc.perform(post("/api/post")
+                        .header("Idempotency-Key", java.util.UUID.randomUUID().toString())
+                        .with(accessToken(OWNER))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value("INVALID_PARAM"))
+                .andExpect(jsonPath("$.errors[0].field").value("contents"))
+                .andExpect(jsonPath("$.errors[0].message").value("Must be 4000 characters or less."));
+
+        assertThat(postRepository.findByCityVisitId(CITY_VISIT_A)).isEmpty();
+    }
+
+    @Test
+    @DisplayName("POST /api/post - 본문 JSON 이 깨져 있으면 500이 아닌 400을 반환한다")
+    void attach_malformedBody() throws Exception {
+        mockMvc.perform(post("/api/post")
+                        .header("Idempotency-Key", java.util.UUID.randomUUID().toString())
+                        .with(accessToken(OWNER))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"cityVisitId\": \"열\", \"contents\": \"글\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value("INVALID_PARAM"));
+    }
+
+    @Test
+    @DisplayName("PATCH /api/post - postId 나 내용이 비어 있으면 400과 INVALID_PARAM 을 반환한다")
+    void updateContent_invalidParam() throws Exception {
+        PostContentsModifyDto dto = new PostContentsModifyDto(null, "");
+
+        mockMvc.perform(patch("/api/post")
+                        .with(accessToken(OWNER))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value("INVALID_PARAM"))
+                .andExpect(jsonPath("$.errors[*].field", containsInAnyOrder("postId", "contents")));
     }
 
     @Test

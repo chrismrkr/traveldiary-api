@@ -30,6 +30,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
@@ -156,6 +157,48 @@ class CityVisitControllerTest {
     }
 
     @Test
+    @DisplayName("POST /api/city-visit - 필수 값이 비어 있으면 400과 INVALID_PARAM, 필드별 오류를 반환한다")
+    void register_invalidParam() throws Exception {
+        // journeyId 누락 + cityName 공백
+        CityVisitCreateReqDto dto = new CityVisitCreateReqDto(null, " ", "place-tokyo",
+                new BigDecimal("35.6762"), new BigDecimal("139.6503"),
+                LocalDate.of(2026, 1, 3), LocalDate.of(2026, 1, 7));
+
+        mockMvc.perform(post("/api/city-visit")
+                        .header("Idempotency-Key", java.util.UUID.randomUUID().toString())
+                        .with(accessToken(OWNER))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(dto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value("INVALID_PARAM"))
+                .andExpect(jsonPath("$.errors.length()").value(2))
+                .andExpect(jsonPath("$.errors[*].field", containsInAnyOrder("journeyId", "cityName")));
+
+        assertThat(cityVisitJpaRepository.count()).isZero();
+    }
+
+    @Test
+    @DisplayName("POST /api/city-visit - 좌표가 범위를 벗어나면 400과 해당 필드 오류를 반환한다")
+    void register_coordinateOutOfRange() throws Exception {
+        Journey journey = saveJourney(OWNER);
+        // latitude 는 -90..90, longitude 는 -180..180 이어야 한다.
+        CityVisitCreateReqDto dto = new CityVisitCreateReqDto(journey.getId(), "Tokyo", "place-tokyo",
+                new BigDecimal("91.0000"), new BigDecimal("181.0000"),
+                LocalDate.of(2026, 1, 3), LocalDate.of(2026, 1, 7));
+
+        mockMvc.perform(post("/api/city-visit")
+                        .header("Idempotency-Key", java.util.UUID.randomUUID().toString())
+                        .with(accessToken(OWNER))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(dto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value("INVALID_PARAM"))
+                .andExpect(jsonPath("$.errors[*].field", containsInAnyOrder("latitude", "longitude")));
+
+        assertThat(cityVisitJpaRepository.count()).isZero();
+    }
+
+    @Test
     @DisplayName("PATCH /api/city-visit - 방문 기간을 수정하면 200")
     void modify() throws Exception {
         Journey journey = saveJourney(OWNER);
@@ -248,6 +291,42 @@ class CityVisitControllerTest {
                         .content(json(dto)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value("INVALID_CITY_VISIT_ORDER"));
+    }
+
+    @Test
+    @DisplayName("PATCH /api/city-visit/order - orders 안의 필드가 비어 있으면 400과 중첩 필드 경로를 반환한다")
+    void realignOrder_nestedInvalidParam() throws Exception {
+        Journey journey = saveJourney(OWNER);
+        CityVisit a = saveCityVisit(journey, LocalDate.of(2026, 1, 3), LocalDate.of(2026, 1, 4));
+
+        // @Valid 가 List 원소까지 전파되는지 확인한다. (orders[0].cityVisitId / orders[1].order)
+        CityVisitOrderRealignReqDto dto = new CityVisitOrderRealignReqDto(journey.getId(),
+                List.of(new CityVisitOrder(null, 0),
+                        new CityVisitOrder(a.getId(), null)));
+
+        mockMvc.perform(patch("/api/city-visit/order")
+                        .with(accessToken(OWNER))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(dto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value("INVALID_PARAM"))
+                .andExpect(jsonPath("$.errors[*].field",
+                        containsInAnyOrder("orders[0].cityVisitId", "orders[1].order")));
+    }
+
+    @Test
+    @DisplayName("PATCH /api/city-visit/order - orders 가 비어 있으면 400")
+    void realignOrder_emptyOrders() throws Exception {
+        Journey journey = saveJourney(OWNER);
+        CityVisitOrderRealignReqDto dto = new CityVisitOrderRealignReqDto(journey.getId(), List.of());
+
+        mockMvc.perform(patch("/api/city-visit/order")
+                        .with(accessToken(OWNER))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(dto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value("INVALID_PARAM"))
+                .andExpect(jsonPath("$.errors[0].field").value("orders"));
     }
 
     @Test

@@ -136,4 +136,19 @@ record PostDatabaseRepositoryTest(PostDatabaseRepository postDatabaseRepository,
 
         assertThat(postDatabaseRepository.findById(saved.getId())).isEmpty();
     }
+
+    @Test
+    @DisplayName("여러 Post 엔티티들을 CityVisitId로 삭제할 수 있다")
+    void deleteByCityVisitId() {
+        Post saved1 = postDatabaseRepository.save(samplePost(10L, "CityVisitId로 삭제될 글"));
+        Post saved2 = postDatabaseRepository.save(samplePost(20L, "CityVisitId로 삭제될 글"));
+        Post saved3 = postDatabaseRepository.save(samplePost(20L, "CityVisitId로 삭제될 글"));
+        Post saved4 = postDatabaseRepository.save(samplePost(20L, "CityVisitId로 삭제될 글"));
+        Post saved5 = postDatabaseRepository.save(samplePost(20L, "CityVisitId로 삭제될 글"));
+
+        postDatabaseRepository.deleteByCityVisitId(20L);
+
+        assertThat(postDatabaseRepository.findByCityVisitId(20L)).isEmpty();
+        assertThat(postDatabaseRepository.findByCityVisitId(10L)).isNotEmpty();
+    }
 }

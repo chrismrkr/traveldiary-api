@@ -137,4 +137,16 @@ class PostServiceTest {
 
         assertThat(postRepository.findById(saved.getId())).isEmpty();
     }
+
+    @Test
+    @DisplayName("Post를 cityVisitId로 삭제할 수 있다")
+    void detachByCityVisitId() {
+        Post saved1 = postService.attach(OWNER_ID, CITY_VISIT_A, samplePlacePoint(), "삭제될 글");
+        Post saved2 = postService.attach(OWNER_ID, CITY_VISIT_A, samplePlacePoint(), "삭제될 글");
+        Post saved3 = postService.attach(OWNER_ID, CITY_VISIT_A, samplePlacePoint(), "삭제될 글");
+
+        postService.detachByCityVisitId(OWNER_ID, CITY_VISIT_A);
+
+        assertThat(postRepository.findByCityVisitId(CITY_VISIT_A)).isEmpty();
+    }
 }

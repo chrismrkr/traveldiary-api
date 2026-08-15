@@ -8,6 +8,7 @@ import kko.traveldiary_api.journey.adaptor.inbound.controller.dto.response.Journ
 import kko.traveldiary_api.journey.application.provided.JourneyFinder;
 import kko.traveldiary_api.journey.application.provided.JourneyManager;
 import kko.traveldiary_api.journey.domain.Journey;
+import jakarta.validation.Valid;
 import kko.traveldiary_api.shared.security.AccessMemberId;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +44,7 @@ public class JourneyController {
     }
 
     @PostMapping("/api/journey")
-    public ResponseEntity<CommonJourneyResponse<JourneyResponseDto>> handleRegisteringJourneyRequest(@AccessMemberId Long memberId, @RequestBody JourneyRegisterReqDto reqDto) {
+    public ResponseEntity<CommonJourneyResponse<JourneyResponseDto>> handleRegisteringJourneyRequest(@AccessMemberId Long memberId, @Valid @RequestBody JourneyRegisterReqDto reqDto) {
         Journey registered = journeyManager.register(memberId, reqDto);
         return ResponseEntity.ok(new CommonJourneyResponse<>(
            JourneyResponseStatuses.SUCCESS, JourneyResponseDto.convert(registered)
@@ -51,7 +52,7 @@ public class JourneyController {
     }
 
     @PatchMapping("/api/journey")
-    public ResponseEntity<CommonJourneyResponse<JourneyResponseDto>> handlePatchingJourneyRequest(@AccessMemberId Long memberId, @RequestBody JourneyPatchReqDto reqDto) {
+    public ResponseEntity<CommonJourneyResponse<JourneyResponseDto>> handlePatchingJourneyRequest(@AccessMemberId Long memberId, @Valid @RequestBody JourneyPatchReqDto reqDto) {
         Journey modified = journeyManager.modify(memberId, reqDto);
         return ResponseEntity.ok(new CommonJourneyResponse<>(
                 JourneyResponseStatuses.SUCCESS, JourneyResponseDto.convert(modified)

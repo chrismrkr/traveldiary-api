@@ -11,6 +11,7 @@ import kko.traveldiary_api.post.domain.PlacePoint;
 import kko.traveldiary_api.post.domain.Post;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
@@ -58,6 +59,12 @@ public class PostService implements PostFinder, PostManager {
                 .orElseThrow(() -> new PostNotFoundException(postId));
         validateOwnerOfPost(memberId, post);
         postRepository.delete(postId);
+    }
+
+    @Override
+    public void detachByCityVisitId(Long memberId, Long cityVisitId) {
+        validateOwnerOfCityVisit(memberId, cityVisitId);
+        postRepository.deleteByCityVisitId(cityVisitId);
     }
 
     private void validateOwnerOfCityVisit(Long memberId, Long cityVisitId) {

@@ -2,6 +2,7 @@ package kko.traveldiary_api.shared.idempotency;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kko.traveldiary_api.journey.adaptor.inbound.controller.dto.request.JourneyRegisterReqDto;
+import kko.traveldiary_api.journey.domain.Visibility;
 import kko.traveldiary_api.journey.adaptor.infrastructure.CityVisitJpaRepository;
 import kko.traveldiary_api.journey.adaptor.infrastructure.JourneyJpaRepository;
 import kko.traveldiary_api.journey.application.required.JourneyRepository;
@@ -67,7 +68,7 @@ class IdempotencyKeyFilterTest {
 
     private String registerBody() throws Exception {
         return objectMapper.writeValueAsString(
-                new JourneyRegisterReqDto(START, END, "도쿄 여행", "PUBLIC"));
+                new JourneyRegisterReqDto(START, END, "도쿄 여행", Visibility.PUBLIC));
     }
 
     @Test

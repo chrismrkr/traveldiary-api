@@ -10,6 +10,7 @@ import kko.traveldiary_api.post.application.provided.PostManager;
 import kko.traveldiary_api.post.domain.PlacePoint;
 import kko.traveldiary_api.post.domain.Post;
 import kko.traveldiary_api.shared.Coordinate;
+import jakarta.validation.Valid;
 import kko.traveldiary_api.shared.security.AccessMemberId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -41,7 +42,7 @@ public class PostController {
     }
 
     @PostMapping("/api/post")
-    public ResponseEntity<CommonPostResponse<Object>> handleAttachPostReq(@AccessMemberId Long memberId, @RequestBody PostAttachReqDto reqDto) {
+    public ResponseEntity<CommonPostResponse<Object>> handleAttachPostReq(@AccessMemberId Long memberId, @Valid @RequestBody PostAttachReqDto reqDto) {
         // latitude/longitude 는 빈 값으로 들어올 수 있으므로 둘 다 있을 때만 좌표를 만든다.
         Coordinate coordinate = (reqDto.latitude() != null && reqDto.longitude() != null)
                 ? new Coordinate(reqDto.latitude(), reqDto.longitude())
@@ -54,7 +55,7 @@ public class PostController {
     }
 
     @PatchMapping("/api/post")
-    public ResponseEntity<CommonPostResponse<Object>> handleModifyContentReq(@AccessMemberId Long memberId, @RequestBody PostContentsModifyDto reqDto) {
+    public ResponseEntity<CommonPostResponse<Object>> handleModifyContentReq(@AccessMemberId Long memberId, @Valid @RequestBody PostContentsModifyDto reqDto) {
         Post modified = postManager.updateContent(memberId, reqDto.postId(), reqDto.contents());
         return ResponseEntity.ok(new CommonPostResponse<>(
                 PostResponseStatuses.SUCCESS, PostResponseDto.convert(modified)

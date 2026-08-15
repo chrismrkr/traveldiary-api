@@ -12,4 +12,5 @@ public interface PostRepository {
     Post save(Post post);
     void delete(Long postId);
     void delete(Post post);
+    void deleteByCityVisitId(Long cityVisitId);
 }

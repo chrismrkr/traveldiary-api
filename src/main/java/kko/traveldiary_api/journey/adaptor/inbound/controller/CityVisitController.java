@@ -9,6 +9,7 @@ import kko.traveldiary_api.journey.adaptor.inbound.controller.dto.response.Journ
 import kko.traveldiary_api.journey.application.provided.CityVisitManager;
 import kko.traveldiary_api.journey.domain.CityVisit;
 import kko.traveldiary_api.shared.Coordinate;
+import jakarta.validation.Valid;
 import kko.traveldiary_api.shared.security.AccessMemberId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +29,7 @@ public class CityVisitController {
     // 여행 중 도시 방문 이력 등록
     @PostMapping("/api/city-visit")
     public ResponseEntity<CommonJourneyResponse<CityVisitResponseDto>> handleCityVisitRegister(
-            @AccessMemberId Long memberId, @RequestBody CityVisitCreateReqDto reqDto) {
+            @AccessMemberId Long memberId, @Valid @RequestBody CityVisitCreateReqDto reqDto) {
         CityVisit visited = cityVisitManager.visit(memberId, reqDto.journeyId(), reqDto.cityName(), reqDto.placeId(),
                 new Coordinate(reqDto.latitude(), reqDto.longitude()),
                 reqDto.startDate(), reqDto.endDate());
@@ -39,7 +40,7 @@ public class CityVisitController {
     // 도시 방문 기간(시작-종료 일자) 수정
     @PatchMapping("/api/city-visit")
     public ResponseEntity<CommonJourneyResponse<CityVisitResponseDto>> handleCityVisitModify(
-            @AccessMemberId Long memberId, @RequestBody CityVisitModifyReqDto reqDto) {
+            @AccessMemberId Long memberId, @Valid @RequestBody CityVisitModifyReqDto reqDto) {
         CityVisit modified = cityVisitManager.modify(memberId, reqDto);
         return ResponseEntity.ok(new CommonJourneyResponse<>(
                 JourneyResponseStatuses.SUCCESS, CityVisitResponseDto.convert(modified)));
@@ -48,7 +49,7 @@ public class CityVisitController {
     // 도시 방문 순서 재정렬
     @PatchMapping("/api/city-visit/order")
     public ResponseEntity<CommonJourneyResponse<Object>> handleCityVisitOrderRealign(
-            @AccessMemberId Long memberId, @RequestBody CityVisitOrderRealignReqDto reqDto) {
+            @AccessMemberId Long memberId, @Valid @RequestBody CityVisitOrderRealignReqDto reqDto) {
         cityVisitManager.realignVisitOrder(memberId, reqDto);
         return ResponseEntity.ok(new CommonJourneyResponse<>(JourneyResponseStatuses.SUCCESS, null));
     }

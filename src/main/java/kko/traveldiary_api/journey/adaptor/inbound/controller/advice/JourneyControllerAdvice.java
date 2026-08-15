@@ -1,7 +1,6 @@
 package kko.traveldiary_api.journey.adaptor.inbound.controller.advice;
 
 import kko.traveldiary_api.journey.adaptor.inbound.controller.JourneyController;
-import kko.traveldiary_api.journey.adaptor.inbound.controller.dto.response.CommonJourneyResponse;
 import kko.traveldiary_api.journey.adaptor.inbound.controller.dto.response.ErrorResponse;
 import kko.traveldiary_api.journey.adaptor.inbound.controller.dto.response.JourneyResponseStatuses;
 import kko.traveldiary_api.journey.application.exception.InvalidJourneyDateChangeException;
@@ -10,12 +9,12 @@ import kko.traveldiary_api.journey.application.exception.JourneyNotFoundExceptio
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import javax.validation.ConstraintViolationException;
 import java.util.List;
 
 @Slf4j
@@ -58,13 +57,20 @@ public class JourneyControllerAdvice {
                 .body(errorResponse);
     }
 
+    @ExceptionHandler(exception = HttpMessageNotReadableException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<ErrorResponse> handleUnreadableBody(HttpMessageNotReadableException exception) {
+        // 파싱 단계에서 실패한 요청(잘못된 enum 값, 깨진 JSON 등)도 500이 아닌 400으로 돌려준다.
+        return ResponseEntity.badRequest()
+                .body(new ErrorResponse(JourneyResponseStatuses.INVALID_PARAM, "Request body is malformed.", null));
+    }
+
     @ExceptionHandler(exception = Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ResponseEntity<ErrorResponse> handleUnknownError(Exception exception) {
         log.error("[Unknown Error]", exception);
-        exception.printStackTrace();
         return ResponseEntity.internalServerError()
-                .body(new ErrorResponse(JourneyResponseStatuses.UNKNOWN_ERROR, exception.getMessage(), null));
+                .body(new ErrorResponse(JourneyResponseStatuses.UNKNOWN_ERROR, "", null));
     }
 
 }

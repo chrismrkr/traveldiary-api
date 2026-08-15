@@ -1,8 +1,8 @@
 package kko.traveldiary_api.journey.domain;
 
+import jakarta.validation.constraints.NotNull;
 import kko.traveldiary_api.journey.application.exception.InvalidCityVisitOrderException;
 
-import javax.validation.constraints.NotNull;
 import java.util.List;
 
 public record CityVisitOrder(

@@ -4,6 +4,7 @@ import kko.traveldiary_api.post.application.required.PostRepository;
 import kko.traveldiary_api.post.domain.Post;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -40,5 +41,11 @@ public class PostDatabaseRepository implements PostRepository {
     @Override
     public void delete(Post post) {
         postJpaRepository.delete(PostEntity.from(post));
+    }
+
+    @Override
+    @Transactional
+    public void deleteByCityVisitId(Long cityVisitId) {
+        postJpaRepository.deleteByCityVisitId(cityVisitId);
     }
 }

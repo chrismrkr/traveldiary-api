@@ -12,6 +12,11 @@ import kko.traveldiary_api.journey.domain.CityVisit;
 import kko.traveldiary_api.journey.domain.Journey;
 import kko.traveldiary_api.journey.domain.Visibility;
 import kko.traveldiary_api.journey.adaptor.inbound.controller.dto.request.JourneyRegisterReqDto;
+import kko.traveldiary_api.post.adaptor.infrastructure.PostJpaRepository;
+import kko.traveldiary_api.post.application.required.PostRepository;
+import kko.traveldiary_api.post.domain.PlacePoint;
+import kko.traveldiary_api.post.domain.Post;
+import kko.traveldiary_api.shared.Coordinate;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -47,12 +52,25 @@ class JourneyServiceTest {
     @Autowired
     CityVisitJpaRepository cityVisitJpaRepository;
 
+    @Autowired
+    PostRepository postRepository;
+
+    @Autowired
+    PostJpaRepository postJpaRepository;
+
     @BeforeEach
     @AfterEach
     void clean() {
         // FK(city_visit.journey_id) 때문에 자식부터 삭제한다.
+        postJpaRepository.deleteAll();
         cityVisitJpaRepository.deleteAll();
         journeyJpaRepository.deleteAll();
+    }
+
+    private Post savePost(Long cityVisitId, String content) {
+        PlacePoint placePoint = PlacePoint.create(
+                "도쿄 스카이트리", "google", "place-skytree", new Coordinate(35.7100, 139.8107));
+        return postRepository.save(Post.create(cityVisitId, placePoint, content));
     }
 
     private Journey saveJourney(Long memberId, String name) {
@@ -144,7 +162,7 @@ class JourneyServiceTest {
     @DisplayName("Journey를 등록할 수 있다")
     void register() {
         Long memberId = 1L;
-        JourneyRegisterReqDto dto = new JourneyRegisterReqDto(START, END, "도쿄 여행", "PUBLIC");
+        JourneyRegisterReqDto dto = new JourneyRegisterReqDto(START, END, "도쿄 여행", Visibility.PUBLIC);
 
         Journey result = journeyService.register(memberId, dto);
 
@@ -161,15 +179,6 @@ class JourneyServiceTest {
         // 실제로 영속되었는지 재조회로 확인한다.
         Journey reloaded = journeyService.findJourney(memberId, result.getId());
         assertThat(reloaded.getName()).isEqualTo("도쿄 여행");
-    }
-
-    @Test
-    @DisplayName("잘못된 Visibility 문자열로 등록하면 예외가 발생한다")
-    void register_invalidVisibility() {
-        JourneyRegisterReqDto dto = new JourneyRegisterReqDto(START, END, "이상한 여행", "UNKNOWN");
-
-        assertThatThrownBy(() -> journeyService.register(1L, dto))
-                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -240,7 +249,7 @@ class JourneyServiceTest {
         Journey aPrivate = journeyService.modify(
                 memberId,
                 new JourneyPatchReqDto(
-                        journey.getId(), null, null, null, "PRIVATE")
+                        journey.getId(), null, null, null, Visibility.PRIVATE)
         );
 
         Journey reloaded = journeyService.findJourney(memberId, journey.getId());
@@ -297,5 +306,77 @@ class JourneyServiceTest {
         // Journey 가 제거되고, cascade REMOVE 로 자식 CityVisit 도 함께 사라진다(FK 위반 없이 삭제됨).
         assertThat(journeyRepository.findById(journey.getId())).isEmpty();
         assertThat(cityVisitJpaRepository.count()).isZero();
+    }
+
+    @Test
+    @DisplayName("Journey를 삭제하면 하위 CityVisit 에 달린 Post 도 함께 삭제된다")
+    void delete_cascadesToPosts() {
+        Long memberId = 1L;
+        Journey journey = saveJourney(memberId, "도쿄 여행");
+        addCityVisit(journey, LocalDate.of(2026, 1, 3), LocalDate.of(2026, 1, 7));
+        addCityVisit(journey, LocalDate.of(2026, 1, 7), LocalDate.of(2026, 1, 9));
+
+        List<Long> cityVisitIds = journeyRepository.findByIdWithCityVisit(journey.getId()).orElseThrow()
+                .getCityVisits().stream().map(CityVisit::getId).toList();
+        savePost(cityVisitIds.get(0), "첫째 도시 글1");
+        savePost(cityVisitIds.get(0), "첫째 도시 글2");
+        savePost(cityVisitIds.get(1), "둘째 도시 글");
+
+        journeyService.delete(memberId, journey.getId());
+
+        assertThat(journeyRepository.findById(journey.getId())).isEmpty();
+        assertThat(cityVisitJpaRepository.count()).isZero();
+        assertThat(postJpaRepository.count()).isZero();
+    }
+
+    @Test
+    @DisplayName("Journey를 삭제해도 다른 CityVisit 의 Post 는 남아 있다")
+    void delete_keepsPostsOfOtherJourney() {
+        Long memberId = 1L;
+        Journey target = saveJourney(memberId, "삭제될 여행");
+        addCityVisit(target, LocalDate.of(2026, 1, 3), LocalDate.of(2026, 1, 7));
+        Journey survivor = saveJourney(memberId, "남을 여행");
+        addCityVisit(survivor, LocalDate.of(2026, 1, 3), LocalDate.of(2026, 1, 7));
+
+        Long targetCityVisitId = journeyRepository.findByIdWithCityVisit(target.getId()).orElseThrow()
+                .getCityVisits().get(0).getId();
+        Long survivorCityVisitId = journeyRepository.findByIdWithCityVisit(survivor.getId()).orElseThrow()
+                .getCityVisits().get(0).getId();
+        savePost(targetCityVisitId, "삭제될 글");
+        savePost(survivorCityVisitId, "남을 글");
+
+        journeyService.delete(memberId, target.getId());
+
+        assertThat(postRepository.findByCityVisitId(targetCityVisitId)).isEmpty();
+        assertThat(postRepository.findByCityVisitId(survivorCityVisitId))
+                .extracting(Post::getContent).containsExactly("남을 글");
+    }
+
+    @Test
+    @DisplayName("CityVisit 이 없는 Journey 도 정상적으로 삭제된다")
+    void delete_withoutCityVisit() {
+        Long memberId = 1L;
+        Journey journey = saveJourney(memberId, "도쿄 여행");
+
+        journeyService.delete(memberId, journey.getId());
+
+        assertThat(journeyRepository.findById(journey.getId())).isEmpty();
+    }
+
+    @Test
+    @DisplayName("소유자가 아니면 삭제되지 않고 Post 도 그대로 남는다")
+    void delete_accessDenied_keepsPosts() {
+        Long memberId = 1L;
+        Journey journey = saveJourney(memberId, "도쿄 여행");
+        addCityVisit(journey, LocalDate.of(2026, 1, 3), LocalDate.of(2026, 1, 7));
+        Long cityVisitId = journeyRepository.findByIdWithCityVisit(journey.getId()).orElseThrow()
+                .getCityVisits().get(0).getId();
+        savePost(cityVisitId, "남아야 하는 글");
+
+        assertThatThrownBy(() -> journeyService.delete(2L, journey.getId()))
+                .isInstanceOf(JourneyAccessDeniedException.class);
+
+        assertThat(journeyRepository.findById(journey.getId())).isPresent();
+        assertThat(postRepository.findByCityVisitId(cityVisitId)).hasSize(1);
     }
 }

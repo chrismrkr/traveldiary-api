@@ -10,6 +10,11 @@ import kko.traveldiary_api.journey.application.required.JourneyRepository;
 import kko.traveldiary_api.journey.domain.CityVisit;
 import kko.traveldiary_api.journey.domain.Journey;
 import kko.traveldiary_api.journey.domain.Visibility;
+import kko.traveldiary_api.post.adaptor.infrastructure.PostJpaRepository;
+import kko.traveldiary_api.post.application.required.PostRepository;
+import kko.traveldiary_api.post.domain.PlacePoint;
+import kko.traveldiary_api.post.domain.Post;
+import kko.traveldiary_api.shared.Coordinate;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -23,6 +28,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -58,10 +64,17 @@ class JourneyControllerTest {
     @Autowired
     CityVisitJpaRepository cityVisitJpaRepository;
 
+    @Autowired
+    PostRepository postRepository;
+
+    @Autowired
+    PostJpaRepository postJpaRepository;
+
     @BeforeEach
     @AfterEach
     void clean() {
         // FK(city_visit.journey_id) 때문에 자식부터 삭제한다.
+        postJpaRepository.deleteAll();
         cityVisitJpaRepository.deleteAll();
         journeyJpaRepository.deleteAll();
     }
@@ -85,7 +98,7 @@ class JourneyControllerTest {
     @Test
     @DisplayName("POST /api/journey - Journey를 등록하면 200과 등록된 Journey를 반환한다")
     void register() throws Exception {
-        JourneyRegisterReqDto dto = new JourneyRegisterReqDto(START, END, "도쿄 여행", "PUBLIC");
+        JourneyRegisterReqDto dto = new JourneyRegisterReqDto(START, END, "도쿄 여행", Visibility.PUBLIC);
 
         mockMvc.perform(post("/api/journey")
                         .with(accessToken(OWNER))
@@ -98,6 +111,74 @@ class JourneyControllerTest {
                 .andExpect(jsonPath("$.data.journeyId").isNumber());
 
         assertThat(journeyRepository.findByMemberId(OWNER)).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("POST /api/journey - 필수 값이 비어 있으면 400과 INVALID_PARAM, 필드별 오류를 반환한다")
+    void register_invalidParam() throws Exception {
+        // startDate 누락 + name 공백
+        JourneyRegisterReqDto dto = new JourneyRegisterReqDto(null, END, "  ", Visibility.PUBLIC);
+
+        mockMvc.perform(post("/api/journey")
+                        .with(accessToken(OWNER))
+                        .header("Idempotency-Key", java.util.UUID.randomUUID().toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value("INVALID_PARAM"))
+                .andExpect(jsonPath("$.errors.length()").value(2))
+                .andExpect(jsonPath("$.errors[*].field",
+                        containsInAnyOrder("startDate", "name")));
+
+        assertThat(journeyRepository.findByMemberId(OWNER)).isEmpty();
+    }
+
+    @Test
+    @DisplayName("POST /api/journey - 이름이 20자를 넘으면 400과 name 필드 오류를 반환한다")
+    void register_nameTooLong() throws Exception {
+        JourneyRegisterReqDto dto = new JourneyRegisterReqDto(START, END, "가".repeat(21), Visibility.PUBLIC);
+
+        mockMvc.perform(post("/api/journey")
+                        .with(accessToken(OWNER))
+                        .header("Idempotency-Key", java.util.UUID.randomUUID().toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value("INVALID_PARAM"))
+                .andExpect(jsonPath("$.errors[0].field").value("name"))
+                .andExpect(jsonPath("$.errors[0].message").value("Journey name is too long (max 20 characters)."));
+
+        assertThat(journeyRepository.findByMemberId(OWNER)).isEmpty();
+    }
+
+    @Test
+    @DisplayName("POST /api/journey - visibility 가 정의되지 않은 값이면 500이 아닌 400을 반환한다")
+    void register_unknownVisibility() throws Exception {
+        String body = """
+                {"startDate":"2026-01-01","endDate":"2026-01-10","name":"도쿄 여행","visibility":"public"}
+                """;
+
+        mockMvc.perform(post("/api/journey")
+                        .with(accessToken(OWNER))
+                        .header("Idempotency-Key", java.util.UUID.randomUUID().toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value("INVALID_PARAM"));
+    }
+
+    @Test
+    @DisplayName("PATCH /api/journey - journeyId 가 없으면 400과 INVALID_PARAM 을 반환한다")
+    void modify_missingJourneyId() throws Exception {
+        JourneyPatchReqDto patch = new JourneyPatchReqDto(null, null, null, "오사카 여행", null);
+
+        mockMvc.perform(patch("/api/journey")
+                        .with(accessToken(OWNER))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(patch)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value("INVALID_PARAM"))
+                .andExpect(jsonPath("$.errors[0].field").value("journeyId"));
     }
 
     @Test
@@ -253,5 +334,26 @@ class JourneyControllerTest {
                 .andExpect(status().isForbidden());
 
         assertThat(journeyRepository.findById(journey.getId())).isPresent();
+    }
+
+    @Test
+    @DisplayName("DELETE /api/journey/{id} - 삭제하면 하위 CityVisit 의 Post 까지 함께 사라진다")
+    void delete_cascadesToPosts() throws Exception {
+        Journey journey = saveJourney(OWNER, "도쿄 여행");
+        addCityVisit(journey, LocalDate.of(2026, 1, 3), LocalDate.of(2026, 1, 7));
+        Long cityVisitId = journeyRepository.findByIdWithCityVisit(journey.getId()).orElseThrow()
+                .getCityVisits().get(0).getId();
+        postRepository.save(Post.create(cityVisitId,
+                PlacePoint.create("도쿄 스카이트리", "google", "place-skytree",
+                        new Coordinate(35.7100, 139.8107)),
+                "삭제될 글"));
+
+        mockMvc.perform(delete("/api/journey/{journeyId}", journey.getId())
+                        .with(accessToken(OWNER)))
+                .andExpect(status().isNoContent());
+
+        assertThat(journeyRepository.findById(journey.getId())).isEmpty();
+        assertThat(cityVisitJpaRepository.count()).isZero();
+        assertThat(postJpaRepository.count()).isZero();
     }
 }

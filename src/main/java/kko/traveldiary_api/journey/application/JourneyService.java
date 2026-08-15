@@ -6,8 +6,9 @@ import kko.traveldiary_api.journey.application.exception.JourneyNotFoundExceptio
 import kko.traveldiary_api.journey.application.provided.JourneyFinder;
 import kko.traveldiary_api.journey.application.provided.JourneyManager;
 import kko.traveldiary_api.journey.application.required.JourneyRepository;
+import kko.traveldiary_api.journey.application.required.PostQueryPort;
+import kko.traveldiary_api.journey.domain.CityVisit;
 import kko.traveldiary_api.journey.domain.Journey;
-import kko.traveldiary_api.journey.domain.Visibility;
 import kko.traveldiary_api.journey.adaptor.inbound.controller.dto.request.JourneyRegisterReqDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class JourneyService implements JourneyFinder, JourneyManager {
     private final JourneyRepository repository;
+    private final PostQueryPort postQueryPort;
 
     @Override
     public List<Journey> findMyJourneys(Long memberId) {
@@ -45,7 +47,7 @@ public class JourneyService implements JourneyFinder, JourneyManager {
                 .createdAt(LocalDateTime.now())
                 .lastModifiedAt(LocalDateTime.now())
                 .isActive(true)
-                .visibility(Visibility.valueOf(registerDto.visibility()))
+                .visibility(registerDto.visibility())
                 .build();
         return repository.save(journey);
     }
@@ -62,14 +64,19 @@ public class JourneyService implements JourneyFinder, JourneyManager {
             journey.changeName(patchReqDto.name());
         }
         if(patchReqDto.visibility() != null) {
-            journey.modifyVisibility(Visibility.valueOf(patchReqDto.visibility()));
+            journey.modifyVisibility(patchReqDto.visibility());
         }
         return repository.save(journey);
     }
 
     @Override
     public void delete(Long memberId, Long journeyId) {
-        findAndValidateOwner(memberId, journeyId, false);
+        Journey journey = findAndValidateOwner(memberId, journeyId, true);
+        long count = journey.getCityVisits().stream().map(CityVisit::getId).toList()
+                .stream().map(postQueryPort::detachByCityVisitId)
+                .filter(result -> result)
+                .count();
+        if(count != journey.getCityVisits().size()) throw new IllegalStateException("Posts belong to CityVisit can not be deleted. (Unknown Error)");
         repository.deleteJourney(journeyId);
     }
 
