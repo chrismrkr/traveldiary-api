@@ -35,44 +35,38 @@ class IdempotencyKeyCleanupTest {
     }
 
     @Test
-    @DisplayName("threshold 이전에 생성된 IN_PROGRESS 키만 삭제하고 COMPLETED 는 남긴다")
-    void deletesStaleInProgressOnly() {
-        String inProgress = reservedKey();
-        String completed = reservedKey();
-        store.complete(completed, 200, "{}");
+    @DisplayName("threshold 이전에 생성된 키를 삭제한다")
+    void deletesExpiredKeys() {
+        String first = reservedKey();
+        String second = reservedKey();
 
-        // 방금 만든 두 건 모두 threshold(1분 뒤) 이전이지만 상태로 선별한다.
-        int deleted = store.deleteOlderThan(
-                IdempotencyRecord.Status.IN_PROGRESS, LocalDateTime.now().plusMinutes(1));
+        int deleted = store.deleteOlderThan(LocalDateTime.now().plusMinutes(1));
 
-        assertThat(deleted).isEqualTo(1);
-        assertThat(repository.findByIdempotencyKey(inProgress)).isEmpty();
-        assertThat(repository.findByIdempotencyKey(completed)).isPresent();
-    }
-
-    @Test
-    @DisplayName("threshold 이전에 생성된 COMPLETED 키를 삭제한다")
-    void deletesExpiredCompleted() {
-        String completed = reservedKey();
-        store.complete(completed, 200, "{}");
-
-        int deleted = store.deleteOlderThan(
-                IdempotencyRecord.Status.COMPLETED, LocalDateTime.now().plusMinutes(1));
-
-        assertThat(deleted).isEqualTo(1);
-        assertThat(repository.findByIdempotencyKey(completed)).isEmpty();
+        assertThat(deleted).isEqualTo(2);
+        assertThat(repository.findByIdempotencyKey(first)).isEmpty();
+        assertThat(repository.findByIdempotencyKey(second)).isEmpty();
     }
 
     @Test
     @DisplayName("threshold 이후에 생성된(=아직 만료 전) 키는 삭제하지 않는다")
     void keepsFreshKeys() {
-        String inProgress = reservedKey();
+        String key = reservedKey();
 
         // threshold 를 과거로 두면 방금 만든 키는 대상이 아니다.
-        int deleted = store.deleteOlderThan(
-                IdempotencyRecord.Status.IN_PROGRESS, LocalDateTime.now().minusMinutes(1));
+        int deleted = store.deleteOlderThan(LocalDateTime.now().minusMinutes(1));
 
-        assertThat(deleted).isEqualTo(0);
-        assertThat(repository.findByIdempotencyKey(inProgress)).isPresent();
+        assertThat(deleted).isZero();
+        assertThat(repository.findByIdempotencyKey(key)).isPresent();
+    }
+
+    @Test
+    @DisplayName("TTL 이 지나 키가 삭제되면 같은 키로 다시 예약할 수 있다")
+    void keyIsReusableAfterCleanup() {
+        String key = reservedKey();
+        assertThat(store.reserve(key, 1L)).isFalse();
+
+        store.deleteOlderThan(LocalDateTime.now().plusMinutes(1));
+
+        assertThat(store.reserve(key, 1L)).isTrue();
     }
 }

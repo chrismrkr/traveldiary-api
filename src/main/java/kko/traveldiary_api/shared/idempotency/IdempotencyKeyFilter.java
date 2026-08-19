@@ -12,20 +12,20 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.filter.OncePerRequestFilter;
-import org.springframework.web.util.ContentCachingResponseWrapper;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * 생성(POST) 요청의 중복 실행을 막는 멱등키 필터.
  * 클라이언트는 {@code Idempotency-Key} 헤더(작업당 UUID)를 반드시 보내야 한다.
  *
- * <p>reserve-first 전략: 핸들러 실행 전에 키를 선점하고, 유니크 제약으로 동시 재시도를 차단한다.
- * 최초 요청만 핸들러를 타고 응답을 저장하며, 재요청은 저장된 응답을 그대로 재생(replay)한다.
+ * <p>핸들러 실행 전에 키를 INSERT 하고, 유니크 제약 위반이면 이미 접수된 요청으로 보고 409 를 반환한다.
+ * 중복 판정은 이 INSERT 하나로 끝나므로 요청 처리 후에 기록할 것이 없다.
+ *
+ * <p>응답 재생(replay)은 하지 않는다. 즉 최초 요청의 응답이 네트워크에서 유실되면 클라이언트는
+ * 409 를 받게 되고, 생성 여부는 조회로 직접 확인해야 한다.
  */
 public class IdempotencyKeyFilter extends OncePerRequestFilter {
     public static final String HEADER = "Idempotency-Key";
@@ -54,44 +54,12 @@ public class IdempotencyKeyFilter extends OncePerRequestFilter {
         }
 
         if (!store.reserve(key, resolveMemberId())) {
-            // 이미 존재하는 키 → 완료면 재생, 처리 중이면 409
-            Optional<IdempotencyRecord> existing = store.find(key);
-            if (existing.isPresent() && existing.get().isCompleted()) {
-                replay(response, existing.get());
-            } else {
-                writeJson(response, HttpStatus.CONFLICT, "IDEMPOTENT_REQUEST_IN_PROGRESS",
-                        "A request with the same Idempotency-Key is already in progress.");
-            }
+            writeJson(response, HttpStatus.CONFLICT, "DUPLICATE_IDEMPOTENCY_KEY",
+                    "A request with the same Idempotency-Key has already been received.");
             return;
         }
 
-        // 예약 성공 → 최초 요청. 응답을 캡처한다.
-        ContentCachingResponseWrapper wrapper = new ContentCachingResponseWrapper(response);
-        boolean stored = false;
-        try {
-            filterChain.doFilter(request, wrapper);
-            int status = wrapper.getStatus();
-            if (status >= 200 && status < 300) {
-                String body = new String(wrapper.getContentAsByteArray(), resolveCharset(wrapper));
-                store.complete(key, status, body);
-                stored = true;
-            }
-        } finally {
-            if (!stored) {
-                // 실패/예외 → 예약 취소하여 정상적인 재시도를 허용한다.
-                store.release(key);
-            }
-            wrapper.copyBodyToResponse();
-        }
-    }
-
-    private void replay(HttpServletResponse response, IdempotencyRecord record) throws IOException {
-        response.setStatus(record.responseStatus());
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        if (record.responseBody() != null) {
-            response.getWriter().write(record.responseBody());
-        }
+        filterChain.doFilter(request, response);
     }
 
     private Long resolveMemberId() {
@@ -104,11 +72,6 @@ public class IdempotencyKeyFilter extends OncePerRequestFilter {
             }
         }
         return null;
-    }
-
-    private Charset resolveCharset(ContentCachingResponseWrapper wrapper) {
-        String encoding = wrapper.getCharacterEncoding();
-        return encoding == null ? StandardCharsets.UTF_8 : Charset.forName(encoding);
     }
 
     private void writeJson(HttpServletResponse response, HttpStatus status, String code, String message) throws IOException {

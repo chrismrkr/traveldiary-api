@@ -32,9 +32,24 @@ app:
     public-key: classpath:keys/traveldiary-public.pem
   idempotency:
     cleanup-interval: PT10M   # 정리 스케줄러 실행 주기
-    in-progress-ttl: PT5M     # 중단된 IN_PROGRESS 예약 만료 시간
-    completed-ttl: PT24H      # COMPLETED 응답 보관(재생 가능) 시간
+    ttl: PT24H                # 멱등키 보관 시간 (지나면 같은 키로 재요청 가능)
   city:
     image:
       storage-path: ./city-images   # 도시 이미지 저장 루트 (운영은 절대경로 권장)
       cache-ttl: P30D               # 이미지 응답 브라우저 캐시 max-age
+
+---
+# 어떤 API 가 호출되어 어떤 SQL 이 나갔는지 추적하기 위한 개발용 로깅.
+# 운영에서는 성능 부담과 파라미터 값(개인정보) 노출 때문에 켜지 않는다.
+spring:
+  config:
+    activate:
+      on-profile: "!prod"
+
+logging:
+  level:
+    # 어떤 요청이 들어와 어떤 컨트롤러 메서드로 매핑됐는지
+    org.springframework.web.servlet.DispatcherServlet: DEBUG
+    org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping: DEBUG
+    # 우리 코드(컨트롤러/서비스/어댑터)의 로그
+    kko.traveldiary_api: DEBUG

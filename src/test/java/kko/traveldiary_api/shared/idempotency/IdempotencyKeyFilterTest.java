@@ -85,31 +85,57 @@ class IdempotencyKeyFilterTest {
     }
 
     @Test
-    @DisplayName("같은 Idempotency-Key로 두 번 호출하면 리소스는 하나만 생성되고 동일 응답을 재생한다")
-    void replaysSameResponse() throws Exception {
+    @DisplayName("같은 Idempotency-Key로 두 번 호출하면 두 번째는 409이고 리소스는 하나만 생성된다")
+    void duplicateKeyIsRejected() throws Exception {
         String key = UUID.randomUUID().toString();
 
-        String first = mockMvc.perform(post("/api/journey")
+        mockMvc.perform(post("/api/journey")
                         .with(accessToken(OWNER))
                         .header(HEADER, key)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(registerBody()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("SUCCESS"))
-                .andReturn().getResponse().getContentAsString();
+                .andExpect(jsonPath("$.status").value("SUCCESS"));
 
-        String second = mockMvc.perform(post("/api/journey")
+        // 응답을 저장하지 않으므로 재생 대신 409 로 거절한다.
+        mockMvc.perform(post("/api/journey")
                         .with(accessToken(OWNER))
                         .header(HEADER, key)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(registerBody()))
-                .andExpect(status().isOk())
-                .andReturn().getResponse().getContentAsString();
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status").value("DUPLICATE_IDEMPOTENCY_KEY"));
 
-        // 재요청은 저장된 응답을 그대로 재생한다.
-        assertThat(second).isEqualTo(first);
-        // 실제 리소스는 하나만 생성된다.
+        // 핵심: 실제 리소스는 하나만 생성된다.
         assertThat(journeyRepository.findByMemberId(OWNER)).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("핸들러가 실패해도 멱등키는 남으므로 같은 키로는 다시 처리되지 않는다")
+    void keyRemainsAfterHandlerFailure() throws Exception {
+        String key = UUID.randomUUID().toString();
+
+        // name 이 공백이라 검증 단계에서 400 으로 실패한다.
+        String invalidBody = objectMapper.writeValueAsString(
+                new JourneyRegisterReqDto(START, END, "  ", Visibility.PUBLIC));
+        mockMvc.perform(post("/api/journey")
+                        .with(accessToken(OWNER))
+                        .header(HEADER, key)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(invalidBody))
+                .andExpect(status().isBadRequest());
+
+        // 실패해도 키를 지우지 않기로 했으므로, 같은 키의 재시도는 409 다.
+        assertThat(idempotencyKeyJpaRepository.findByIdempotencyKey(key)).isPresent();
+        mockMvc.perform(post("/api/journey")
+                        .with(accessToken(OWNER))
+                        .header(HEADER, key)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(registerBody()))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status").value("DUPLICATE_IDEMPOTENCY_KEY"));
+
+        assertThat(journeyRepository.findByMemberId(OWNER)).isEmpty();
     }
 
     @Test
