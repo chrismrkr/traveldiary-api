@@ -12,27 +12,26 @@ import org.springframework.context.annotation.Profile;
 
 /**
  * 실제 생성형 AI 어댑터의 수동 빈 등록.
- * {@code prod} 프로파일에서만 등록되며, 그 외(local/dev/test)에서는
- * {@link FakeGenerativeAiConfig} 의 Fake 구현이 주입되어 실제 AI 를 호출하지 않는다.
+ * 개발 서버({@code dev})와 운영 서버({@code prod})에서 등록된다.
+ * 그 외(로컬 실행·테스트)에서는 {@link FakeGenerativeAiConfig} 의 Fake 구현이 주입되어
+ * 실제 AI 를 호출하지 않는다.
  */
 @Configuration
+@Profile({"dev", "prod"})
 public class GenerativeAiConfig {
 
     @Bean(name = "claudeChatClient")
-    @Profile("prod")
     public ChatClient claudeChatClient(AnthropicChatModel anthropicChatModel) {
         return ChatClient.create(anthropicChatModel);
     }
 
     @Bean
-    @Profile("prod")
     public CityDescriptionGenerator cityDescriptionGenerator(
             @Qualifier("claudeChatClient") ChatClient claudeChatClient) {
         return new CityDescriptionAIGenerator(claudeChatClient);
     }
 
     @Bean
-    @Profile("prod")
     public CityImageGenerator cityImageGenerator(ImageModel imageModel) {
         return new CityImageAiGenerator(imageModel);
     }

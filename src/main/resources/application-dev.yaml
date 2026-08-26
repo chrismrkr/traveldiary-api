@@ -1,0 +1,73 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: traveldiary-api
+
+  # 접속 정보는 k8s Secret/ConfigMap 에서 환경변수로 주입받는다.
+  # 기본값이 없어서 누락 시 기동이 실패한다 — 잘못된 DB 로 조용히 붙는 것보다 낫다.
+  # JDBC 옵션도 URL 에 포함해 넘겨야 한다. 권장 파라미터:
+  #   ?characterEncoding=UTF-8&connectionTimeZone=UTC
+  #   (connectionTimeZone 은 파드 TZ 와 반드시 같은 값이어야 시간 값이 밀리지 않는다)
+  datasource:
+    # K8s에서 env/Secret으로 주입 (예: jdbc:mysql://mysql:3306/traveldiary)
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      # 파드당 커넥션 수. (레플리카 수 × 이 값) 이 MySQL max_connections 를 넘지 않아야 한다.
+      maximum-pool-size: ${DB_POOL_SIZE:10}
+
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+
+  ai:
+    anthropic:
+      api-key: ${ANTHROPIC_API_KEY}   # 환경변수로 주입
+      chat:
+        options:
+          model: claude-sonnet-4-5
+          max-tokens: 1024
+          temperature: 0
+    openai:
+      api-key: ${OPENAI_API_KEY} # 환경변수로 주입
+      image:
+        options:
+          model: gpt-image-1
+          quality: medium
+          width: 1024
+          height: 1024
+
+app:
+  jwt:
+    # 공개키는 이미지에 굽지 않는다 (.dockerignore 에서 src/main/resources/keys/ 제외).
+    # k8s Secret 을 이 경로에 마운트한다 — 키를 교체해도 이미지 재빌드가 필요 없다.
+    public-key: file:/etc/traveldiary/keys/traveldiary-public.pem
+  idempotency:
+    cleanup-interval: PT10M   # 정리 스케줄러 실행 주기
+    ttl: PT24H                # 멱등키 보관 시간 (지나면 같은 키로 재요청 가능)
+  city:
+    image:
+      # 컨테이너 파일시스템은 재시작하면 사라지므로 PVC 마운트 경로를 쓴다.
+      storage-path: /var/lib/traveldiary/city-images
+      cache-ttl: P30D               # 이미지 응답 브라우저 캐시 max-age
+
+---
+# 어떤 API 가 호출되어 어떤 SQL 이 나갔는지 추적하기 위한 개발용 로깅.
+# 운영에서는 성능 부담과 파라미터 값(개인정보) 노출 때문에 켜지 않는다.
+spring:
+  config:
+    activate:
+      on-profile: "!prod"
+
+logging:
+  level:
+    # 어떤 요청이 들어와 어떤 컨트롤러 메서드로 매핑됐는지
+    org.springframework.web.servlet.DispatcherServlet: DEBUG
+    org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping: DEBUG
+    # 우리 코드(컨트롤러/서비스/어댑터)의 로그
+    kko.traveldiary_api: DEBUG

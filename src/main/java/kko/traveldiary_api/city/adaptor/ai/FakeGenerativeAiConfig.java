@@ -12,12 +12,13 @@ import java.util.UUID;
 
 /**
  * 생성형 AI 를 호출하지 않는 Fake 구현.
- * {@code prod} 가 아닌 모든 프로파일(local/dev/test)에서 등록되어,
+ * 서버 프로파일({@code dev}/{@code prod})이 아닐 때만 등록되어,
  * 로컬 실행/테스트 시 실제 AI 비용·호출을 피한다.
+ * 개발 서버부터는 {@link GenerativeAiConfig} 의 실제 어댑터가 주입된다.
  * (특정 동작 검증이 필요한 테스트는 @MockitoBean 으로 덮어쓰면 된다.)
  */
 @Configuration
-@Profile("!prod")
+@Profile("!dev & !prod")
 public class FakeGenerativeAiConfig {
 
     @Bean

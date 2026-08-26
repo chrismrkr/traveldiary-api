@@ -12,7 +12,7 @@ import org.springframework.ai.openai.OpenAiImageOptions;
 import java.util.Base64;
 import java.util.UUID;
 
-// 수동 빈 등록: GenerativeAiConfig 에서 @Profile("!test") 로 등록한다.
+// 수동 빈 등록: GenerativeAiConfig 에서 @Profile({"dev", "prod"}) 로 등록한다.
 @RequiredArgsConstructor
 public class CityImageAiGenerator implements CityImageGenerator {
     private final ImageModel imageModel;

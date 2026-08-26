@@ -5,7 +5,7 @@ import kko.traveldiary_api.city.domain.City;
 import kko.traveldiary_api.city.domain.CityDescription;
 import org.springframework.ai.chat.client.ChatClient;
 
-// 수동 빈 등록: GenerativeAiConfig 에서 @Profile("!test") 로 등록한다.
+// 수동 빈 등록: GenerativeAiConfig 에서 @Profile({"dev", "prod"}) 로 등록한다.
 public class CityDescriptionAIGenerator implements CityDescriptionGenerator {
     private final ChatClient claudeChatClient;
 
