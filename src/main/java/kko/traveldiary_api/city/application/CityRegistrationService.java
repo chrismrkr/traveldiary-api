@@ -63,7 +63,6 @@ public class CityRegistrationService implements CityRegistration, CityDetailRegi
             log.warn("City not found, skipping detail generation. placeId={}", request.placeId());
         }
         catch (Exception e) {
-            // 비동기 스레드에서 도는 데다 호출자에게 전파되지 않으므로, 여기서 남기지 않으면 원인이 사라진다.
             log.error("Failed to generate city detail. placeId={}, cityId={}",
                     request.placeId(), city == null ? null : city.getId(), e);
             if (city != null) {

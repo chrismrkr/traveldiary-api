@@ -41,8 +41,9 @@ public class CityDescriptionAIGenerator implements CityDescriptionGenerator {
             Be polite and friendly. Never use profanity.
 
             LENGTH (follow exactly)
-            Each part must be at most 2 sentences AND at most 25 words in total.
-            Stop as soon as you have made the point. Shorter is better.
+            overview and historyAndCulture: at most 2 sentences AND at most 30 words each.
+            funFact and localTip: at most 2 sentences AND at most 25 words each.
+            Stop as soon as you have made the point.
 
             PARTS
             Return exactly these four parts:
@@ -51,9 +52,21 @@ public class CityDescriptionAIGenerator implements CityDescriptionGenerator {
             - funFact: One surprising detail. Never anything that could offend locals.
             - localTip: Something locals know that most visitors miss.
 
+            WHAT TO SHOW (important)
             overview and historyAndCulture are also sent to an image-generation AI
-            to draw the city, so each of them must name at least one thing you can
-            actually see (a building, a landscape, a street scene, a colour).
+            to draw the city, so together they must give it something to draw.
+
+            If this city has a well-known landmark, name it by its real name -
+            a mosque, temple, bridge, tower, palace, park, or historic quarter.
+            Prefer the one the city is best known for.
+
+            If this city has no landmark you are confident about, do NOT invent one
+            and do NOT borrow one from a nearby city. Instead describe what the
+            place actually looks like: its setting (coast, desert, river, mountains),
+            its typical buildings and their materials or colours, and its street life.
+
+            Either way, describe things that can be seen. Spend your words on
+            concrete details rather than adjectives.
             funFact and localTip are never drawn, so they may stay abstract.
             """;
 
