@@ -1,6 +1,7 @@
 package kko.traveldiary_api.city.adaptor.ai;
 
 import kko.traveldiary_api.city.application.required.CityImageGenerator;
+import kko.traveldiary_api.city.domain.City;
 import kko.traveldiary_api.city.domain.CityDescription;
 import kko.traveldiary_api.city.domain.CityImage;
 import lombok.RequiredArgsConstructor;
@@ -18,8 +19,10 @@ public class CityImageAiGenerator implements CityImageGenerator {
     private final ImageModel imageModel;
 
     @Override
-    public CityImage generate(CityDescription description) {
-        String imageFullPrompt = CITY_IMAGE_GEN_SYS_PROMPT + description.getExplanation();
+    public CityImage generate(City city, CityDescription description) {
+        String imageFullPrompt = CITY_IMAGE_GEN_SYS_PROMPT
+                + "City: " + city.getName() + ". "
+                + "Description: " + description.getExplanation();
         ImageResponse image = imageModel.call(new ImagePrompt(imageFullPrompt));
 
         String imageId = UUID.randomUUID().toString();
@@ -32,5 +35,7 @@ public class CityImageAiGenerator implements CityImageGenerator {
                     "Match the visual mood, color palette, and lighting to the atmosphere of this specific city " +
                     "as conveyed in the description — it may be vibrant, cool, moody, sunny, historic, or modern depending on the place. " +
                     "Painterly, slightly stylized travel poster aesthetic. " +
-                    "No text or letters in the image. Description: ";
+                    // 포스터 화풍은 학습 데이터상 타이포그래피와 강하게 붙어 있어, 금지를 구체적으로 나열해야 한다.
+                    "Render the scene only: absolutely no text, letters, words, numbers, captions, " +
+                    "signage, logos, watermarks, or signatures anywhere in the image. ";
 }

@@ -1,7 +1,9 @@
 package kko.traveldiary_api.city.adaptor.ai;
 
+import kko.traveldiary_api.city.domain.City;
 import kko.traveldiary_api.city.domain.CityDescription;
 import kko.traveldiary_api.city.domain.CityImage;
+import kko.traveldiary_api.shared.Coordinate;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
@@ -25,6 +27,15 @@ class CityImageAiGeneratorTest {
     @Value("${spring.ai.openai.api-key:NO_SET}")
     private String apiKey;
 
+    private static City city(String name, double latitude, double longitude) {
+        return City.builder()
+                .name(name)
+                .placeId("geo:" + latitude + "," + longitude)
+                .coordinate(new Coordinate(latitude, longitude))
+                .status(City.Status.PENDING)
+                .build();
+    }
+
     @Test
     void 서울의_설명을_활용해서_이미지를_생성할_수_있다() throws IOException {
         // given
@@ -35,7 +46,7 @@ class CityImageAiGeneratorTest {
                 "", "");
         // when
         long startTime = System.currentTimeMillis();
-        CityImage seoulImage = imageAiGenerator.generate(seoul);
+        CityImage seoulImage = imageAiGenerator.generate(city("Seoul", 37.5665, 126.9780), seoul);
         log.info("It takes {} millis.", System.currentTimeMillis() - startTime);
 
         // then
@@ -58,7 +69,7 @@ class CityImageAiGeneratorTest {
 
         // when
         long startTime = System.currentTimeMillis();
-        CityImage portoImage = imageAiGenerator.generate(porto);
+        CityImage portoImage = imageAiGenerator.generate(city("Porto", 41.1579, -8.6291), porto);
         log.info("It takes {} millis.", System.currentTimeMillis() - startTime);
 
         // then
@@ -81,7 +92,7 @@ class CityImageAiGeneratorTest {
 
         // when
         long startTime = System.currentTimeMillis();
-        CityImage portoImage = imageAiGenerator.generate(barcelona);
+        CityImage portoImage = imageAiGenerator.generate(city("Barcelona", 41.3874, 2.1686), barcelona);
         log.info("It takes {} millis.", System.currentTimeMillis() - startTime);
 
         // then

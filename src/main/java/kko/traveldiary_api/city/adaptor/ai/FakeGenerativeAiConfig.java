@@ -29,6 +29,6 @@ public class FakeGenerativeAiConfig {
 
     @Bean
     public CityImageGenerator cityImageGenerator() {
-        return description -> new CityImage(UUID.randomUUID().toString(), new byte[]{1, 2, 3});
+        return (city, description) -> new CityImage(UUID.randomUUID().toString(), new byte[]{1, 2, 3});
     }
 }

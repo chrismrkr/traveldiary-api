@@ -86,7 +86,7 @@ class CityServiceTest {
         String placeId = "place-busan";
         Coordinate coordinate = new Coordinate(35.1796, 129.0756); // 부산
         given(cityDescriptionGenerator.generate(any())).willReturn(new CityDescription("부산에 대한 설명", "", "", ""));
-        given(cityImageGenerator.generate(any())).willReturn(new CityImage("id-123", "abcabc".getBytes(StandardCharsets.UTF_8)));
+        given(cityImageGenerator.generate(any(), any())).willReturn(new CityImage("id-123", "abcabc".getBytes(StandardCharsets.UTF_8)));
 
         // 좌표 조회 실패 → 비동기 등록을 트리거하고 PENDING 상태 City를 반환한다.
         City orRegister = cityFinder.findOrRegister(name, placeId, coordinate);

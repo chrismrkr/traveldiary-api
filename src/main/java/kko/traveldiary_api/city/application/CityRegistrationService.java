@@ -51,25 +51,25 @@ public class CityRegistrationService implements CityRegistration, CityDetailRegi
             city = repository.findByPlaceId(request.placeId()).orElseThrow();
 
             CityDescription cityDescription = cityDescriptionGenerator.generate(city);
-            CityImage image = imageGenerator.generate(cityDescription);
-
-            log.debug("[CityDescription funFact] {}", cityDescription.funFact());
-            log.debug("[CityDescription historyAndCulture] {}", cityDescription.historyAndCulture());
-            log.debug("[CityDescription localTip] {}", cityDescription.localTip());
-            log.debug("[CityDescription overview] {}", cityDescription.overview());
-
-            log.debug("[Image Bytes] {}", image.imageBytes());
+            CityImage image = imageGenerator.generate(city, cityDescription);
 
             imageStorage.save(image.id(), image.imageBytes());
 
             city.saveDetails(cityDescription, image.id());
             city.setStatus(City.Status.READY);
             repository.save(city);
-        } catch (NoSuchElementException ignored) { }
+
+        } catch (NoSuchElementException e) {
+            log.warn("City not found, skipping detail generation. placeId={}", request.placeId());
+        }
         catch (Exception e) {
-            assert city != null;
-            city.setStatus(City.Status.FAILED);
-            repository.save(city);
+            // 비동기 스레드에서 도는 데다 호출자에게 전파되지 않으므로, 여기서 남기지 않으면 원인이 사라진다.
+            log.error("Failed to generate city detail. placeId={}, cityId={}",
+                    request.placeId(), city == null ? null : city.getId(), e);
+            if (city != null) {
+                city.setStatus(City.Status.FAILED);
+                repository.save(city);
+            }
             // TODO Requiring Retry Policy
         }
     }
